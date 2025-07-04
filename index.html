@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有彩华创意空间 | 知识分享与创造</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #1a2530;
+            --yellow: #f1c40f;
+            --green: #2ecc71;
+            --purple: #9b59b6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), #2c3e50);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(52, 152, 219, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(231, 76, 60, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 30%, rgba(241, 196, 15, 0.1) 0%, transparent 30%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 头部样式 */
+        header {
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            background: rgba(26, 37, 48, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--secondary), var(--yellow));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .logo i {
+            font-size: 2rem;
+            color: var(--yellow);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 5px 0;
+            transition: all 0.3s ease;
+        }
+        
+        nav a:hover {
+            color: var(--yellow);
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--yellow);
+            transition: width 0.3s ease;
+        }
+        
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        /* 英雄区域 */
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h2 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #bdc3c7;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--secondary), #2980b9);
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+        }
+        
+        .btn-green {
+            background: linear-gradient(45deg, var(--green), #27ae60);
+            color: white;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-purple {
+            background: linear-gradient(45deg, var(--purple), #8e44ad);
+            color: white;
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        /* 特色区域 */
+        .features {
+            padding: 4rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .section-title h2 {
+            font-size: 2.5rem;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--yellow);
+            border-radius: 2px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        
+        .feature-card i {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--yellow);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--light);
+        }
+        
+        .feature-card p {
+            color: #bdc3c7;
+        }
+        
+        /* 最新内容 */
+        .latest-content {
+            padding: 4rem 0;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .content-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .content-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-image {
+            height: 200px;
+            background: linear-gradient(45deg, #3498db, #2c3e50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .card-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+            color: var(--light);
+        }
+        
+        .card-content .meta {
+            display: flex;
+            justify-content: space-between;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-content p {
+            color: #bdc3c7;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--accent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+        
+        /* 创意项目展示 */
+        .projects {
+            padding: 4rem 0;
+        }
+        
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(241, 196, 15, 0.2), transparent 30%);
+            animation: rotate 6s linear infinite;
+        }
+        
+        .project-card:hover::before {
+            background: conic-gradient(transparent, var(--secondary), transparent 30%);
+        }
+        
+        .project-card > * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .project-card i {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--yellow);
+        }
+        
+        .project-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .project-card p {
+            color: #bdc3c7;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* 文章管理面板 */
+        .article-manager {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 3rem 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .manager-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .manager-header h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--yellow);
+        }
+        
+        .manager-header p {
+            color: #bdc3c7;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--light);
+            font-size: 1rem;
+        }
+        
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        /* 文章预览 */
+        .article-preview {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px dashed var(--yellow);
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .preview-title {
+            font-size: 1.5rem;
+            color: var(--light);
+        }
+        
+        .preview-date {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .preview-content {
+            color: #bdc3c7;
+            line-height: 1.8;
+        }
+        
+        .preview-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* 教程部分 */
+        .tutorial-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .tutorial-step {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--yellow);
+        }
+        
+        .tutorial-step h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            color: var(--yellow);
+        }
+        
+        .tutorial-step p {
+            margin-bottom: 1rem;
+            color: #bdc3c7;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .file-structure {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            line-height: 1.8;
+        }
+        
+        .file-structure div {
+            margin-left: 1.5rem;
+        }
+        
+        /* 动画 */
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* 页脚 */
+        footer {
+            background: rgba(10, 20, 30, 0.8);
+            padding: 3rem 0 1.5rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--yellow);
+        }
+        
+        .footer-column p, .footer-column a {
+            color: #95a5a6;
+            margin-bottom: 0.8rem;
+            display: block;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-column a:hover {
+            color: var(--secondary);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                gap: 1.5rem;
+            }
+            
+            .hero h2 {
+                font-size: 2.5rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-lightbulb"></i>
+                    <h1>有彩华创意与分享</h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-home"></i> 首页</a></li>
+                        <li><a href="#articles"><i class="fas fa-book-reader"></i> 英语阅读</a></li>
+                        <li><a href="#projects"><i class="fas fa-lightbulb"></i> 创意项目</a></li>
+                        <li><a href="#tools"><i class="fas fa-tools"></i> 实用工具</a></li>
+                        <li><a href="#games"><i class="fas fa-gamepad"></i> 休闲游戏</a></li>
+                        <li><a href="#tutorial"><i class="fas fa-question-circle"></i> 使用指南</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2>探索 · 学习 · 创造</h2>
+                <p>每日更新的英语阅读内容，创意学习工具和趣味小游戏<br>在知识的海洋中发现无限可能</p>
+                <div class="cta-buttons">
+                    <a href="#articles" class="btn btn-primary">开始阅读</a>
+                    <a href="#projects" class="btn btn-purple">探索项目</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 特色区域 -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>网站特色</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card floating">
+                    <i class="fas fa-book-open"></i>
+                    <h3>每日英语阅读</h3>
+                    <p>精选英语文章，有趣、有意义又能学习新单词，每日更新，助你提升阅读能力</p>
+                </div>
+                <div class="feature-card floating" style="animation-delay: 0.2s;">
+                    <i class="fas fa-brain"></i>
+                    <h3>创意学习工具</h3>
+                    <p>独创的学习工具如数字古诗舒尔特方格、单位转换器等，让学习过程充满乐趣</p>
+                </div>
+                <div class="feature-card floating" style="animation-delay: 0.4s;">
+                    <i class="fas fa-gamepad"></i>
+                    <h3>趣味小游戏</h3>
+                    <p>俄罗斯方块等经典游戏重新设计，融入学习元素，寓教于乐</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最新内容 -->
+    <section class="latest-content" id="articles">
+        <div class="container">
+            <div class="section-title">
+                <h2>最新文章</h2>
+            </div>
+            <div class="content-grid">
+                <div class="content-card"><a href="#tutorial" style="text-decoration: none;">
+                    <div class="card-image">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>小松鼠的忙碌一天</h3>
+                        <div class="meta">
+                            <span><i class="far fa-calendar"></i> 2025-07-03</span>
+                            <span><i class="far fa-clock"></i> 8分钟阅读</span>
+                        </div>
+                        <p>阳光在绿意公园的树木间跳跃。一只叫果果的小松鼠沿着树枝蹦蹦跳跳。</p>
+                        <span class="tag">动物</span>
+                        <span class="tag">文学</span>
+                        <span class="tag">阅读</span>
+                    </a></div>
+                </div>
+                
+                <div class="content-card"><a href="#tutorial" style="text-decoration: none;">
+                    <div class="card-image" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>智能单位转换器</h3>
+                        <div class="meta">
+                            <span><i class="far fa-calendar"></i> 2025-06-30</span>
+                            <span><i class="fas fa-toolbox"></i> 实用工具</span>
+                        </div>
+                        <p>全新上线的单位转换工具，支持各种产品不同规格单位间的即时转换，满足日常需求。</p>
+                        <span class="tag">工具</span>
+                        <span class="tag">数学</span>
+                        <span class="tag">实用</span>
+                    </div>
+                </a></div>
+                
+                <div class="content-card"><a href="#tutorial" style="text-decoration: none;">
+                    <div class="card-image" style="background: linear-gradient(45deg, #f1c40f, #f39c12);">
+                        <i class="fas fa-feather-alt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>数字古诗舒尔特方格挑战</h3>
+                        <div class="meta">
+                            <span><i class="far fa-calendar"></i> 2025-08-01</span>
+                            <span><i class="fas fa-gamepad"></i> 学习游戏</span>
+                        </div>
+                        <p>将经典古诗融入舒尔特方格训练，在锻炼注意力和反应速度的同时，感受中华诗词之美。</p>
+                        <span class="tag">古诗</span>
+                        <span class="tag">游戏</span>
+                        <span class="tag">认知训练</span>
+                    </div>
+                </a></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 创意项目 -->
+    <section class="projects" id="projects">
+        <div class="container">
+            <div class="section-title">
+                <h2>创意项目</h2>
+            </div>
+            <div class="project-grid">
+                <div class="project-card">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <h3>古诗舒尔特方格</h3>
+                    <p>将传统注意力训练与古诗学习完美结合，在游戏中感受诗词韵律</p>
+                    <a href="games/poem-grid.html" class="btn btn-secondary">体验项目</a>
+                </div>
+                
+                <div class="project-card">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h3>智能单位转换器</h3>
+                    <p>支持多种度量衡单位转换，操作简便，结果精准</p>
+                    <a href="tools/unit-converter.html" class="btn btn-secondary">使用工具</a>
+                </div>
+                
+                <div class="project-card">
+                    <i class="fas fa-border-all"></i>
+                    <h3>创意俄罗斯方块</h3>
+                    <p>经典游戏新玩法，融入英语单词和数学元素，娱乐学习两不误</p>
+                    <a href="games/tetris.html" class="btn btn-secondary">开始游戏</a>
+                </div>
+                
+                <div class="project-card">
+                    <i class="fas fa-book"></i>
+                    <h3>每日阅读挑战</h3>
+                    <p>精选英语文章配合阅读理解和词汇练习，每天进步一点点</p>
+                    <a href="articles/daily-challenge.html" class="btn btn-secondary">参与挑战</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>关于有彩华创意空间</h3>
+                    <p>一个分享知识、创造和乐趣的个人空间。每日更新英语阅读内容，定期发布创意学习工具和小游戏。</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>快速链接</h3>
+                    <a href="#articles"><i class="fas fa-chevron-right"></i> 最新文章</a>
+                    <a href="#tools"><i class="fas fa-chevron-right"></i> 学习工具</a>
+                    <a href="#games"><i class="fas fa-chevron-right"></i> 趣味游戏</a>
+                    <a href="#projects"><i class="fas fa-chevron-right"></i> 项目合集</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>订阅更新</h3>
+                    <p>订阅获取最新内容通知和特别项目发布</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 有彩华创意空间 | 知识分享与创造平台 | 每日更新</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script>
+        // 文章管理功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const saveBtn = document.getElementById('save-btn');
+            const previewBtn = document.getElementById('preview-btn');
+            const previewContainer = document.getElementById('preview-container');
+            
+            // 预览文章功能
+            previewBtn.addEventListener('click', function() {
+                const title = document.getElementById('article-title').value || '文章标题';
+                const date = document.getElementById('article-date').value || new Date().toISOString().split('T')[0];
+                const content = document.getElementById('article-content').value || '文章内容将在这里显示...';
+                
+                document.getElementById('preview-title').textContent = title;
+                document.getElementById('preview-date').textContent = date;
+                
+                // 使用Marked.js将Markdown转换为HTML
+                document.getElementById('preview-content').innerHTML = marked.parse(content);
+                
+                previewContainer.style.display = 'block';
+            });
+            
+            // 保存文章功能
+            saveBtn.addEventListener('click', function() {
+                const title = document.getElementById('article-title').value;
+                const date = document.getElementById('article-date').value;
+                const category = document.getElementById('article-category').value;
+                const tags = document.getElementById('article-tags').value;
+                const content = document.getElementById('article-content').value;
+                
+                if (!title || !content) {
+                    alert('请填写文章标题和内容');
+                    return;
+                }
+                
+                // 在实际应用中，这里会将数据发送到服务器保存
+                // 这里我们模拟保存成功
+                alert(`文章"${title}"保存成功！\n发布日期: ${date}\n分类: ${category}\n标签: ${tags}`);
+                
+                // 重置表单
+                document.getElementById('article-title').value = '';
+                document.getElementById('article-date').value = '';
+                document.getElementById('article-tags').value = '';
+                document.getElementById('article-content').value = '';
+                
+                previewContainer.style.display = 'none';
+                
+                // 模拟添加到文章列表
+                const contentGrid = document.querySelector('.content-grid');
+                const newArticle = document.createElement('div');
+                newArticle.className = 'content-card';
+                newArticle.innerHTML = `
+                    <div class="card-image">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>${title}</h3>
+                        <div class="meta">
+                            <span><i class="far fa-calendar"></i> ${date}</span>
+                            <span><i class="fas fa-folder"></i> ${category}</span>
+                        </div>
+                        <p>${content.substring(0, 100)}${content.length > 100 ? '...' : ''}</p>
+                        <div>
+                            ${tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                // 添加到文章列表最前面
+                contentGrid.insertBefore(newArticle, contentGrid.firstChild);
+            });
+            
+            // 设置默认日期为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('article-date').value = today;
+        });
+    </script>
+</body>
+</html>
