@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字古诗舒尔特方格训练游戏</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        header {
+            text-align: center;
+            margin: 20px 0 30px;
+        }
+        
+        h1 {
+            font-size: 3.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #ff8a00, transparent);
+        }
+        
+        .subtitle {
+            color: #ddd;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* 模式选择面板 */
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .mode-card {
+            width: 180px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mode-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mode-card.active {
+            border-color: #ff8a00;
+            background: rgba(255, 138, 0, 0.2);
+        }
+        
+        .mode-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .mode-card:hover .mode-icon {
+            transform: scale(1.2);
+        }
+        
+        .number-icon { color: #4CAF50; }
+        .poem-icon { color: #FFC107; }
+        
+        .mode-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* 控制面板 */
+        .control-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+        }
+        
+        .control-label {
+            color: #FFC107;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .size-selector select, .poem-selector select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid #4CAF50;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .timer {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FF5722;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #FF5722;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #FF5722, #E91E63);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+        
+        /* 游戏网格 */
+        .game-grid {
+            display: grid;
+            gap: 12px;
+            margin: 20px auto 40px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            min-height: 400px;
+        }
+        
+        .grid-cell {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            aspect-ratio: 1/1;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        
+        .grid-cell:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+        
+        .grid-cell.correct {
+            background: rgba(76, 175, 80, 0.7);
+            transform: scale(0.95);
+        }
+        
+        .grid-cell.current {
+            background: rgba(255, 193, 7, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .grid-cell.wrong {
+            animation: shake 0.5s, flashRed 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        
+        @keyframes flashRed {
+            0%, 100% { background: rgba(244, 67, 54, 0.7); }
+            50% { background: rgba(244, 67, 54, 0.9); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* 排行榜 */
+        .leaderboard {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+        
+        .leaderboard h2 {
+            text-align: center;
+            color: #FFC107;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            color: white;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #FF5722, #E91E63);
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        th {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #FFC107;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 结果弹窗 */
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .result-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+        }
+        
+        .result-modal.show .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-content h2 {
+            color: #FFC107;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .result-time {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 30px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .countdown-text {
+            color: #FFC107;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            animation: pulseText 1s infinite;
+        }
+        
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .mode-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .game-grid {
+                gap: 8px;
+                padding: 12px;
+            }
+            
+            .grid-cell {
+                font-size: 1.4rem;
+            }
+        }
+        
+        /* 提示标记 */
+        .hint-marker {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #FF5722;
+            border-radius: 50%;
+            animation: pulseHint 1.5s infinite;
+        }
+        
+        @keyframes pulseHint {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* 古诗标题 */
+        .poem-title {
+            text-align: center;
+            margin: 10px 0 20px;
+            color: #FFC107;
+            font-size: 1.3rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .poem-hint {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #4CAF50;
+            font-size: 1.1rem;
+        }
+        
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .size-info {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        /* 音效控制 */
+        .sound-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .sound-control i {
+            font-size: 1.5rem;
+            color: #FFC107;
+        }
+        
+        /* 古诗选择器 */
+        .poem-selector {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+        
+        .poem-selector.active {
+            display: block;
+        }
+        
+        .poem-selector .control-label {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 音效控制 -->
+    <div class="sound-control" id="sound-control">
+        <i class="fas fa-volume-up"></i>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>数字古诗舒尔特方格训练</h1>
+            <p class="subtitle">提升专注力与视觉搜索能力 - 数字与古诗模式</p>
+        </header>
+        
+        <div class="game-container">
+            <!-- 模式选择 -->
+            <div class="mode-selector">
+                <div class="mode-card active" data-mode="number">
+                    <div class="mode-icon number-icon"><i class="fas fa-sort-numeric-up"></i></div>
+                    <div class="mode-name">数字模式</div>
+                </div>
+                <div class="mode-card" data-mode="poem">
+                    <div class="mode-icon poem-icon"><i class="fas fa-book"></i></div>
+                    <div class="mode-name">古诗模式</div>
+                </div>
+            </div>
+            
+            <!-- 古诗选择器 -->
+            <div class="poem-selector" id="poem-selector">
+                <div class="control-label">选择古诗:</div>
+                <select id="poem-choice">
+                    <!-- 动态填充 -->
+                </select>
+            </div>
+            
+            <!-- 古诗标题 -->
+            <div class="poem-title" id="poem-title"></div>
+            <div class="poem-hint" id="poem-hint"></div>
+            
+            <!-- 控制面板 -->
+            <div class="control-panel">
+                <div class="control-group">
+                    <div class="control-label">选择难度:</div>
+                    <div class="size-selector">
+                        <select id="grid-size">
+                            <option value="4">4×4 (初级)</option>
+                            <option value="5" selected>5×5 (中级)</option>
+                            <option value="6">6×6 (高级)</option>
+                        </select>
+                    </div>
+                    <div class="size-info" id="size-info"></div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">当前用时:</div>
+                    <div class="timer" id="timer">00:00</div>
+                </div>
+                
+                <div class="control-group">
+                    <button class="btn" id="start-btn">
+                        <i class="fas fa-play"></i>开始游戏
+                    </button>
+                    <button class="btn" id="hint-btn" style="margin-top: 10px;">
+                        <i class="fas fa-lightbulb"></i>提示下一个
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 游戏网格 -->
+            <div class="game-grid" id="game-grid"></div>
+            
+            <!-- 排行榜 -->
+            <div class="leaderboard">
+                <h2><i class="fas fa-trophy"></i> 排行榜</h2>
+                <div class="tabs">
+                    <button class="tab active" data-type="number">数字模式</button>
+                    <button class="tab" data-type="poem">古诗模式</button>
+                </div>
+                <table id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>日期</th>
+                            <th>用时</th>
+                            <th>难度</th>
+                            <th>模式</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 结果弹窗 -->
+        <div class="result-modal" id="result-modal">
+            <div class="modal-content">
+                <h2><i class="fas fa-trophy"></i> 恭喜完成！</h2>
+                <p>你成功完成了所有方格的点击</p>
+                <div class="result-time" id="result-time">45.32秒</div>
+                <div class="countdown-text" id="countdown-text">10秒后自动返回主界面</div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>数字古诗舒尔特方格训练 &copy; 2025 | 提升专注力和视觉搜索能力</p>
+    </footer>
+    
+    <!-- 音效元素 -->
+    <audio id="click-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
+    <audio id="correct-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3"></audio>
+    <audio id="wrong-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="complete-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-completion-of-a-level-2063.mp3"></audio>
+    <audio id="hint-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-sweep-bulletin-485.mp3"></audio>
+    
+    <script>
+        // 游戏配置
+        const config = {
+            currentMode: 'number',
+            gridSize: 5,
+            gameStarted: false,
+            startTime: 0,
+            timerInterval: null,
+            currentNumber: 1,
+            poemList: [
+                {
+                    title: "静夜思",
+                    author: "李白",
+                    content: "床前明月光疑是地上霜举头望明月低头思故乡"
+                },
+                {
+                    title: "春晓",
+                    author: "孟浩然",
+                    content: "春眠不觉晓处处闻啼鸟夜来风雨声花落知多少"
+                },
+                {
+                    title: "登鹳雀楼",
+                    author: "王之涣",
+                    content: "白日依山尽黄河入海流欲穷千里目更上一层楼"
+                },
+                {
+                    title: "悯农",
+                    author: "李绅",
+                    content: "锄禾日当午汗滴禾下土谁知盘中餐粒粒皆辛苦"
+                },
+                {
+                    title: "咏鹅",
+                    author: "骆宾王",
+                    content: "鹅鹅鹅曲项向天歌白毛浮绿水红掌拨清波"
+                },
+                {
+                    title: "望庐山瀑布",
+                    author: "李白",
+                    content: "日照香炉生紫烟遥看瀑布挂前川飞流直下三千尺疑是银河落九天"
+                },
+                {
+                    title: "赠汪伦",
+                    author: "李白",
+                    content: "李白乘舟将欲行忽闻岸上踏歌声桃花潭水深千尺不及汪伦送我情"
+                },
+                {
+                    title: "早发白帝城",
+                    author: "李白",
+                    content: "朝辞白帝彩云间千里江陵一日还两岸猿声啼不住轻舟已过万重山"
+                },
+                {
+                    title: "江雪",
+                    author: "柳宗元",
+                    content: "千山鸟飞绝万径人踪灭孤舟蓑笠翁独钓寒江雪"
+                },
+                {
+                    title: "枫桥夜泊",
+                    author: "张继",
+                    content: "月落乌啼霜满天江枫渔火对愁眠姑苏城外寒山寺夜半钟声到客船"
+                },
+                {
+                    title: '赋得古原草送别(节选)',
+                    author: "白居易",
+                    content: '离离原上草一岁一枯荣野火烧不尽春风吹又生',
+                },
+                {
+                    title: '望庐山瀑布',
+                    author: "李白",
+                    content: '日照香炉生紫烟遥看瀑布挂前川飞流直下三千尺疑是银河落九天',
+                }
+            ],
+            currentPoem: null,
+            scores: [], // 存储所有成绩
+            soundEnabled: true, // 音效开关
+            countdownInterval: null, // 倒计时计时器
+            selectedPoemIndex: 0 // 当前选择的古诗索引
+        };
+        
+        // DOM元素
+        const elements = {
+            modeCards: document.querySelectorAll('.mode-card'),
+            gridSizeSelect: document.getElementById('grid-size'),
+            startBtn: document.getElementById('start-btn'),
+            hintBtn: document.getElementById('hint-btn'),
+            gameGrid: document.getElementById('game-grid'),
+            timer: document.getElementById('timer'),
+            resultModal: document.getElementById('result-modal'),
+            resultTime: document.getElementById('result-time'),
+            countdownText: document.getElementById('countdown-text'),
+            leaderboardTabs: document.querySelectorAll('.tab'),
+            leaderboardBody: document.getElementById('leaderboard-body'),
+            poemTitle: document.getElementById('poem-title'),
+            poemHint: document.getElementById('poem-hint'),
+            sizeInfo: document.getElementById('size-info'),
+            soundControl: document.getElementById('sound-control'),
+            clickSound: document.getElementById('click-sound'),
+            correctSound: document.getElementById('correct-sound'),
+            wrongSound: document.getElementById('wrong-sound'),
+            completeSound: document.getElementById('complete-sound'),
+            hintSound: document.getElementById('hint-sound'),
+            poemSelector: document.getElementById('poem-selector'),
+            poemChoice: document.getElementById('poem-choice')
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            // 从localStorage加载成绩
+            loadScores();
+            
+            // 设置事件监听器
+            setupEventListeners();
+            
+            // 初始化排行榜
+            updateLeaderboard();
+            
+            // 初始化古诗选择器
+            initPoemSelector();
+            
+            // 生成初始网格
+            generateGrid();
+        }
+        
+        // 初始化古诗选择器
+        function initPoemSelector() {
+            elements.poemChoice.innerHTML = '';
+            config.poemList.forEach((poem, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${poem.title} - ${poem.author}`;
+                elements.poemChoice.appendChild(option);
+            });
+            
+            // 默认选择第一首古诗
+            config.selectedPoemIndex = 0;
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 模式选择
+            elements.modeCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    playSound('click');
+                    elements.modeCards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    config.currentMode = card.dataset.mode;
+                    
+                    // 古诗模式显示古诗选择器
+                    if (config.currentMode === 'poem') {
+                        elements.poemSelector.classList.add('active');
+                        elements.sizeInfo.textContent = "古诗模式自动调整网格";
+                    } else {
+                        elements.poemSelector.classList.remove('active');
+                        elements.sizeInfo.textContent = "";
+                    }
+                    
+                    generateGrid();
+                });
+            });
+            
+            // 难度选择
+            elements.gridSizeSelect.addEventListener('change', () => {
+                playSound('click');
+                config.gridSize = parseInt(elements.gridSizeSelect.value);
+                generateGrid();
+            });
+            
+            // 古诗选择
+            elements.poemChoice.addEventListener('change', () => {
+                playSound('click');
+                config.selectedPoemIndex = parseInt(elements.poemChoice.value);
+                generateGrid();
+            });
+            
+            // 开始游戏按钮
+            elements.startBtn.addEventListener('click', startGame);
+            
+            // 提示按钮
+            elements.hintBtn.addEventListener('click', showHint);
+            
+            // 排行榜标签页
+            elements.leaderboardTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    playSound('click');
+                    elements.leaderboardTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    updateLeaderboard();
+                });
+            });
+            
+            // 音效控制
+            elements.soundControl.addEventListener('click', toggleSound);
+        }
+        
+        // 生成游戏网格
+        function generateGrid() {
+            elements.gameGrid.innerHTML = '';
+            elements.gameGrid.style.display = 'grid';
+            elements.poemTitle.textContent = '';
+            elements.poemHint.textContent = '';
+            
+            let totalCells;
+            let items = [];
+            
+            if (config.currentMode === 'number') {
+                // 数字模式
+                totalCells = config.gridSize * config.gridSize;
+                elements.sizeInfo.textContent = `网格大小: ${config.gridSize}×${config.gridSize}`;
+                
+                // 生成数字
+                for (let i = 1; i <= totalCells; i++) {
+                    items.push(i);
+                }
+            } else {
+                // 古诗模式
+                // 获取选择的古诗
+                config.currentPoem = config.poemList[config.selectedPoemIndex];
+                
+                // 显示古诗标题
+                elements.poemTitle.textContent = `${config.currentPoem.title} · ${config.currentPoem.author}`;
+                elements.poemHint.textContent = `请按古诗顺序点击: ${config.currentPoem.content}`;
+                
+                // 处理古诗文本（已无标点）
+                const poemContent = config.currentPoem.content;
+                const poemLength = poemContent.length;
+                
+                // 计算网格大小
+                config.gridSize = Math.ceil(Math.sqrt(poemLength));
+                if (config.gridSize < 4) config.gridSize = 4;
+                if (config.gridSize > 6) config.gridSize = 6;
+                
+                totalCells = config.gridSize * config.gridSize;
+                elements.sizeInfo.textContent = `网格大小: ${config.gridSize}×${config.gridSize} (自动调整)`;
+                
+                // 填充古诗文字
+                const poemChars = poemContent.split('');
+                
+                // 填充大写字母
+                const lettersNeeded = totalCells - poemLength;
+                for (let i = 0; i < lettersNeeded; i++) {
+                    poemChars.push(String.fromCharCode(65 + i)); // A, B, C, ...
+                }
+                
+                items = poemChars;
+            }
+            
+            // 设置网格布局
+            elements.gameGrid.style.gridTemplateColumns = `repeat(${config.gridSize}, 1fr)`;
+            
+            // 打乱顺序
+            shuffleArray(items);
+            
+            // 创建网格单元格
+            items.forEach((item, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.textContent = item;
+                
+                // 在古诗模式中存储值
+                if (config.currentMode === 'poem') {
+                    cell.dataset.value = item;
+                }
+                
+                cell.addEventListener('click', handleCellClick);
+                elements.gameGrid.appendChild(cell);
+            });
+            
+            // 重置游戏状态
+            resetGameState();
+        }
+        
+        // 打乱数组顺序
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // 重置游戏状态
+        function resetGameState() {
+            config.gameStarted = false;
+            config.currentNumber = 1;
+            clearInterval(config.timerInterval);
+            elements.timer.textContent = '00:00';
+            
+            // 移除所有提示标记
+            document.querySelectorAll('.hint-marker').forEach(marker => marker.remove());
+            
+            // 清除所有样式
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.classList.remove('correct', 'current', 'wrong');
+            });
+        }
+        
+        // 开始游戏
+        function startGame() {
+            if (config.gameStarted) return;
+            
+            playSound('click');
+            
+            config.gameStarted = true;
+            config.startTime = Date.now();
+            config.currentNumber = 1;
+            
+            // 重置所有单元格样式
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.classList.remove('correct', 'current', 'wrong');
+            });
+            
+            // 启动计时器
+            clearInterval(config.timerInterval);
+            config.timerInterval = setInterval(updateTimer, 100);
+        }
+        
+        // 更新计时器
+        function updateTimer() {
+            const elapsed = Date.now() - config.startTime;
+            const seconds = (elapsed / 1000).toFixed(2);
+            elements.timer.textContent = `${seconds}秒`;
+        }
+        
+        // 处理单元格点击
+        function handleCellClick(event) {
+            if (!config.gameStarted) {
+                alert('请先点击"开始游戏"按钮！');
+                return;
+            }
+            
+            playSound('click');
+            
+            const cell = event.target;
+            let isCorrect = false;
+            
+            if (config.currentMode === 'number') {
+                // 数字模式
+                const cellValue = parseInt(cell.textContent);
+                isCorrect = (cellValue === config.currentNumber);
+            } else {
+                // 古诗模式
+                const currentChar = config.currentPoem.content[config.currentNumber - 1];
+                isCorrect = (cell.textContent === currentChar);
+            }
+            
+            if (isCorrect) {
+                // 正确点击 - 短暂显示绿色
+                playSound('correct');
+                cell.classList.add('correct');
+                config.currentNumber++;
+                
+                // 短暂显示后恢复原状
+                setTimeout(() => {
+                    cell.classList.remove('correct');
+                }, 300);
+                
+                // 检查是否完成
+                if (config.currentMode === 'number') {
+                    if (config.currentNumber > config.gridSize * config.gridSize) {
+                        endGame();
+                    }
+                } else {
+                    if (config.currentNumber > config.currentPoem.content.length) {
+                        endGame();
+                    }
+                }
+            } else {
+                // 错误点击 - 添加动画效果
+                playSound('wrong');
+                cell.classList.add('wrong');
+                setTimeout(() => {
+                    cell.classList.remove('wrong');
+                }, 500);
+            }
+        }
+        
+        // 显示提示
+        function showHint() {
+            if (!config.gameStarted) {
+                alert('请先开始游戏！');
+                return;
+            }
+            
+            playSound('hint');
+            
+            // 移除旧的提示标记
+            document.querySelectorAll('.hint-marker').forEach(marker => marker.remove());
+            
+            // 找到当前应该点击的单元格
+            let targetCell = null;
+            let targetValue = null;
+            
+            if (config.currentMode === 'number') {
+                // 数字模式：找到值为config.currentNumber的单元格
+                targetValue = config.currentNumber;
+                targetCell = Array.from(document.querySelectorAll('.grid-cell')).find(
+                    cell => parseInt(cell.textContent) === targetValue
+                );
+            } else {
+                // 古诗模式：找到古诗中当前应该点击的字
+                targetValue = config.currentPoem.content[config.currentNumber - 1];
+                targetCell = Array.from(document.querySelectorAll('.grid-cell')).find(
+                    cell => cell.textContent === targetValue
+                );
+            }
+            
+            if (targetCell) {
+                // 创建提示标记
+                const marker = document.createElement('div');
+                marker.className = 'hint-marker';
+                targetCell.appendChild(marker);
+                
+                // 添加高亮效果
+                targetCell.classList.add('current');
+                
+                // 5秒后移除提示标记
+                setTimeout(() => {
+                    marker.remove();
+                    targetCell.classList.remove('current');
+                }, 3000);
+            }
+        }
+        
+        // 结束游戏
+        function endGame() {
+            clearInterval(config.timerInterval);
+            const elapsed = (Date.now() - config.startTime) / 1000;
+            
+            // 显示结果
+            elements.resultTime.textContent = `${elapsed.toFixed(2)}秒`;
+            elements.resultModal.classList.add('show');
+            
+            // 播放完成音效
+            playSound('complete');
+            
+            // 添加到排行榜
+            addToLeaderboard(elapsed);
+            
+            // 启动10秒倒计时
+            startCountdown();
+        }
+        
+        // 开始10秒倒计时
+        function startCountdown() {
+            let seconds = 10;
+            elements.countdownText.textContent = `${seconds}秒后自动返回主界面`;
+            
+            clearInterval(config.countdownInterval);
+            config.countdownInterval = setInterval(() => {
+                seconds--;
+                elements.countdownText.textContent = `${seconds}秒后自动返回主界面`;
+                
+                if (seconds <= 0) {
+                    clearInterval(config.countdownInterval);
+                    elements.resultModal.classList.remove('show');
+                    generateGrid();
+                }
+            }, 1000);
+        }
+        
+        // 添加到排行榜
+        function addToLeaderboard(time) {
+            const score = {
+                mode: config.currentMode,
+                size: config.gridSize,
+                time: parseFloat(time.toFixed(2)),
+                date: new Date().toLocaleDateString()
+            };
+            
+            // 添加到成绩数组
+            config.scores.push(score);
+            
+            // 保存到localStorage
+            saveScores();
+            
+            // 更新排行榜显示
+            updateLeaderboard();
+        }
+        
+        // 保存成绩到localStorage
+        function saveScores() {
+            localStorage.setItem('schulteScores', JSON.stringify(config.scores));
+        }
+        
+        // 从localStorage加载成绩
+        function loadScores() {
+            const savedScores = localStorage.getItem('schulteScores');
+            if (savedScores) {
+                config.scores = JSON.parse(savedScores);
+            } else {
+                config.scores = [];
+            }
+        }
+        
+        // 更新排行榜显示
+        function updateLeaderboard() {
+            // 获取当前选中的排行榜类型
+            const activeTab = document.querySelector('.tab.active');
+            const type = activeTab ? activeTab.dataset.type : 'number';
+            
+            // 过滤对应类型的成绩
+            const filteredScores = config.scores
+                .filter(score => score.mode === type)
+                .sort((a, b) => a.time - b.time) // 按时间升序排序
+                .slice(0, 10); // 取前10条
+            
+            // 清空排行榜表格
+            elements.leaderboardBody.innerHTML = '';
+            
+            // 填充排行榜数据
+            filteredScores.forEach((score, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${score.date}</td>
+                    <td>${score.time}秒</td>
+                    <td>${score.size}×${score.size}</td>
+                    <td>${score.mode === 'number' ? '数字' : '古诗'}</td>
+                `;
+                
+                elements.leaderboardBody.appendChild(row);
+            });
+            
+            // 如果数据不足10条，填充空行
+            for (let i = filteredScores.length; i < 10; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+                elements.leaderboardBody.appendChild(row);
+            }
+        }
+        
+        // 播放音效
+        function playSound(type) {
+            if (!config.soundEnabled) return;
+            
+            try {
+                let sound;
+                switch(type) {
+                    case 'click':
+                        sound = elements.clickSound;
+                        break;
+                    case 'correct':
+                        sound = elements.correctSound;
+                        break;
+                    case 'wrong':
+                        sound = elements.wrongSound;
+                        break;
+                    case 'complete':
+                        sound = elements.completeSound;
+                        break;
+                    case 'hint':
+                        sound = elements.hintSound;
+                        break;
+                    default:
+                        return;
+                }
+                
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(e => console.log("音效播放失败:", e));
+                }
+            } catch(e) {
+                console.log("音效播放失败:", e);
+            }
+        }
+        
+        // 切换音效开关
+        function toggleSound() {
+            config.soundEnabled = !config.soundEnabled;
+            if (config.soundEnabled) {
+                elements.soundControl.innerHTML = '<i class="fas fa-volume-up"></i>';
+                playSound('click');
+            } else {
+                elements.soundControl.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            }
+        }
+        
+        // 页面加载完成后初始化游戏
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
