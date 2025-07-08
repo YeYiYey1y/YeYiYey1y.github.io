@@ -539,6 +539,20 @@
             box-shadow: 0 10px 25px rgba(86, 171, 47, 0.7);
         }
         
+        .generation-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+        }
+        
         @keyframes rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -695,6 +709,11 @@
                     </div>
                 </div>
                 
+                <div class="generation-status" id="generation-status">
+                    <i class="fas fa-sync fa-spin"></i>
+                    <span>正在生成唯一解数独题目...</span>
+                </div>
+                
                 <div class="input-panel" id="input-panel">
                     <!-- 数字输入面板将通过JS生成 -->
                 </div>
@@ -710,11 +729,9 @@
                             <li>每一列包含1-9的所有数字，且不重复</li>
                             <li>每个3×3的子网格包含1-9的所有数字，且不重复</li>
                         </ul>
-                        <p><strong>操作指南：</strong></p>
-                        <p>1. 选择难度开始新游戏</p>
-                        <p>2. 点击格子，然后从下方数字面板选择数字</p>
-                        <p>3. 使用删除按钮清除已输入的数字</p>
-                        <p>4. 游戏会自动检查完成情况</p>
+                        <p><strong>改进说明：</strong></p>
+                        <p>本版本保证所有题目都有唯一解，解决了之前版本可能存在多解的问题。</p>
+                        <p>生成唯一解题目需要额外计算时间，请耐心等待。</p>
                     </div>
                 </div>
                 
@@ -978,6 +995,9 @@
 
         // 开始新游戏
         function startNewGame(difficulty) {
+            // 显示生成状态
+            document.getElementById('generation-status').style.display = 'flex';
+            
             // 重置游戏状态
             gameState.difficulty = difficulty;
             gameState.userBoard = Array(9).fill().map(() => Array(9).fill(0));
@@ -998,10 +1018,15 @@
             });
             
             // 生成新数独
-            generateSudoku();
-            
-            // 启动计时器
-            startTimer();
+            setTimeout(() => {
+                generateSudoku();
+                
+                // 启动计时器
+                startTimer();
+                
+                // 隐藏生成状态
+                document.getElementById('generation-status').style.display = 'none';
+            }, 100);
         }
 
         // 生成数独
@@ -1009,8 +1034,8 @@
             // 生成完整解
             generateSolution();
             
-            // 根据难度移除数字
-            removeNumbers();
+            // 根据难度移除数字（确保唯一解）
+            removeNumbersWithUniqueCheck();
             
             // 渲染棋盘
             renderBoard();
@@ -1099,38 +1124,94 @@
             return array;
         }
 
-        // 移除数字（根据难度）
-        function removeNumbers() {
-            const { min, max } = difficultySettings[gameState.difficulty];
-            const cellsToKeep = Math.floor(Math.random() * (max - min + 1)) + min;
-            let cellsRemoved = 81 - cellsToKeep;
+        // 计算解法数量（确保唯一解的关键函数）
+        function countSolutions(board) {
+            // 深拷贝棋盘
+            const boardCopy = JSON.parse(JSON.stringify(board));
+            let solutionCount = 0;
             
-            // 复制解决方案到用户棋盘
+            backtrack(boardCopy);
+            return solutionCount;
+            
+            function backtrack(board) {
+                const emptyCell = findEmptyCell(board);
+                if (!emptyCell) {
+                    solutionCount++;
+                    return;
+                }
+                
+                // 如果已经有两个解，提前终止
+                if (solutionCount >= 2) return;
+                
+                const [row, col] = emptyCell;
+                for (let num = 1; num <= 9; num++) {
+                    if (isValidPlacement(board, row, col, num)) {
+                        board[row][col] = num;
+                        backtrack(board);
+                        
+                        // 如果已经有两个解，提前终止
+                        if (solutionCount >= 2) return;
+                        
+                        board[row][col] = 0; // 回溯
+                    }
+                }
+            }
+        }
+
+        // 移除数字（确保唯一解）
+        function removeNumbersWithUniqueCheck() {
+            const { min, max } = difficultySettings[gameState.difficulty];
+            const targetClues = Math.floor(Math.random() * (max - min + 1)) + min;
+            
+            // 初始化用户棋盘为完整解
             for (let i = 0; i < 9; i++) {
                 for (let j = 0; j < 9; j++) {
                     gameState.userBoard[i][j] = gameState.solution[i][j];
+                    gameState.fixedCells[i][j] = true;
                 }
             }
             
-            // 随机移除数字
-            while (cellsRemoved > 0) {
-                const row = Math.floor(Math.random() * 9);
-                const col = Math.floor(Math.random() * 9);
-                
-                if (gameState.userBoard[row][col] !== 0) {
-                    gameState.userBoard[row][col] = 0;
-                    gameState.fixedCells[row][col] = false;
-                    cellsRemoved--;
-                }
-            }
+            let currentClues = 81;
+            let attempts = 0;
+            const maxAttempts = 200; // 最大尝试次数
             
-            // 标记固定格子
-            for (let i = 0; i < 9; i++) {
-                for (let j = 0; j < 9; j++) {
-                    if (gameState.userBoard[i][j] !== 0) {
-                        gameState.fixedCells[i][j] = true;
+            // 逐步移除数字，确保唯一解
+            while (currentClues > targetClues && attempts < maxAttempts) {
+                // 获取所有非空格子
+                const nonEmptyCells = [];
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (gameState.userBoard[row][col] !== 0) {
+                            nonEmptyCells.push([row, col]);
+                        }
                     }
                 }
+                
+                if (nonEmptyCells.length === 0) break;
+                
+                // 随机选择一个非空格子
+                const randomIndex = Math.floor(Math.random() * nonEmptyCells.length);
+                const [row, col] = nonEmptyCells[randomIndex];
+                
+                // 备份当前值
+                const backup = gameState.userBoard[row][col];
+                
+                // 尝试移除
+                gameState.userBoard[row][col] = 0;
+                
+                // 检查是否仍然有唯一解
+                const solutions = countSolutions(gameState.userBoard);
+                
+                if (solutions === 1) {
+                    // 唯一解，保留移除
+                    gameState.fixedCells[row][col] = false;
+                    currentClues--;
+                } else {
+                    // 不是唯一解，恢复
+                    gameState.userBoard[row][col] = backup;
+                }
+                
+                attempts++;
             }
         }
 
