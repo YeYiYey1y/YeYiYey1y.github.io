@@ -17,26 +17,26 @@
             --darker-bg: #050811;
             --card-bg: rgba(15, 22, 40, 0.7);
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Exo 2', sans-serif;
             background: var(--dark-bg);
             color: #e0e0ff;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(0, 100, 255, 0.1) 0%, transparent 20%),
                 radial-gradient(circle at 90% 80%, rgba(150, 0, 255, 0.1) 0%, transparent 20%),
                 linear-gradient(to bottom, var(--darker-bg), var(--dark-bg));
             min-height: 100vh;
             position: relative;
         }
-        
+
         body::before {
             content: "";
             position: fixed;
@@ -44,13 +44,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.05) 0%, transparent 10%),
                 radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.05) 0%, transparent 10%);
             pointer-events: none;
             z-index: -1;
         }
-        
+
         /* 头部样式 */
         header {
             position: fixed;
@@ -65,13 +65,13 @@
             background: rgba(10, 14, 23, 0.8);
             border-bottom: 1px solid rgba(0, 255, 255, 0.2);
         }
-        
+
         .hologram-logo {
             display: flex;
             align-items: center;
             gap: 15px;
         }
-        
+
         .rotating-cube {
             width: 50px;
             height: 50px;
@@ -79,7 +79,7 @@
             transform-style: preserve-3d;
             animation: rotateCube 10s infinite linear;
         }
-        
+
         .cube-face {
             position: absolute;
             width: 100%;
@@ -91,14 +91,14 @@
             font-size: 24px;
             opacity: 0.8;
         }
-        
+
         .cube-face:nth-child(1) { transform: translateZ(25px); background: rgba(0, 255, 255, 0.1); }
         .cube-face:nth-child(2) { transform: rotateY(180deg) translateZ(25px); background: rgba(255, 0, 255, 0.1); }
         .cube-face:nth-child(3) { transform: rotateY(90deg) translateZ(25px); background: rgba(0, 255, 0, 0.1); }
         .cube-face:nth-child(4) { transform: rotateY(-90deg) translateZ(25px); background: rgba(255, 255, 0, 0.1); }
         .cube-face:nth-child(5) { transform: rotateX(90deg) translateZ(25px); background: rgba(255, 0, 0, 0.1); }
         .cube-face:nth-child(6) { transform: rotateX(-90deg) translateZ(25px); background: rgba(0, 0, 255, 0.1); }
-        
+
         .logo-text {
             font-family: 'Orbitron', sans-serif;
             font-size: 28px;
@@ -107,7 +107,7 @@
             text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
             letter-spacing: 2px;
         }
-        
+
         .cyber-scanner {
             position: absolute;
             bottom: -1px;
@@ -117,12 +117,12 @@
             background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
             animation: scan 4s linear infinite;
         }
-        
+
         nav {
             display: flex;
             gap: 25px;
         }
-        
+
         .glow-button {
             position: relative;
             background: transparent;
@@ -137,7 +137,7 @@
             border-radius: 4px;
             transition: all 0.3s ease;
         }
-        
+
         .glow-button::before {
             content: '';
             position: absolute;
@@ -149,7 +149,7 @@
             clip-path: polygon(0 0, 100% 0, 100% 20%, 0 20%);
             transition: all 0.3s ease;
         }
-        
+
         .glow-button::after {
             content: '';
             position: absolute;
@@ -161,18 +161,18 @@
             clip-path: polygon(0 80%, 100% 80%, 100% 100%, 0 100%);
             transition: all 0.3s ease;
         }
-        
+
         .glow-button:hover {
             text-shadow: 0 0 10px var(--neon-blue);
             transform: translateY(-3px);
         }
-        
-        .glow-button:hover::before, 
+
+        .glow-button:hover::before,
         .glow-button:hover::after {
             background: var(--neon-blue);
             box-shadow: 0 0 15px var(--neon-blue);
         }
-        
+
         /* 主视觉区 */
         .hero {
             min-height: 100vh;
@@ -184,7 +184,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .hero h1 {
             font-family: 'Orbitron', sans-serif;
             font-size: 5rem;
@@ -197,7 +197,7 @@
             text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
             letter-spacing: 4px;
         }
-        
+
         .hero p {
             font-size: 1.5rem;
             max-width: 800px;
@@ -205,7 +205,7 @@
             margin-bottom: 50px;
             line-height: 1.6;
         }
-        
+
         .cube-hub {
             position: relative;
             width: 300px;
@@ -213,7 +213,7 @@
             margin: 50px auto;
             perspective: 1200px;
         }
-        
+
         .magic-cube {
             width: 100%;
             height: 100%;
@@ -221,7 +221,7 @@
             transform-style: preserve-3d;
             animation: rotateCube 20s infinite linear;
         }
-        
+
         .cube-face-main {
             position: absolute;
             width: 100%;
@@ -239,35 +239,35 @@
             transition: all 0.5s ease;
             cursor: pointer;
         }
-        
+
         .cube-face-main:hover {
             box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.3), 0 0 40px var(--neon-blue);
             transform: translateZ(20px);
         }
-        
+
         .cube-face-main:nth-child(1) { transform: rotateY(0deg) translateZ(150px); border-color: var(--neon-blue); }
         .cube-face-main:nth-child(2) { transform: rotateY(90deg) translateZ(150px); border-color: var(--neon-green); }
         .cube-face-main:nth-child(3) { transform: rotateY(180deg) translateZ(150px); border-color: var(--neon-orange); }
         .cube-face-main:nth-child(4) { transform: rotateY(270deg) translateZ(150px); border-color: var(--neon-pink); }
-        
+
         .cube-icon {
             font-size: 60px;
             margin-bottom: 20px;
         }
-        
+
         .cube-title {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.8rem;
             margin-bottom: 10px;
             text-align: center;
         }
-        
+
         .cube-desc {
             text-align: center;
             font-size: 1rem;
             opacity: 0.8;
         }
-        
+
         .planet-orbit {
             position: absolute;
             top: 50%;
@@ -279,7 +279,7 @@
             border: 1px dashed rgba(0, 255, 255, 0.3);
             animation: orbit 30s linear infinite;
         }
-        
+
         .orbiting-planet {
             position: absolute;
             width: 70px;
@@ -293,35 +293,35 @@
             box-shadow: 0 0 20px currentColor;
             animation: pulse 3s infinite alternate;
         }
-        
+
         .orbiting-planet:nth-child(1) {
             top: 0;
             left: 50%;
             background: linear-gradient(135deg, var(--neon-blue), #0066cc);
             color: var(--neon-blue);
         }
-        
+
         .orbiting-planet:nth-child(2) {
             top: 50%;
             left: 100%;
             background: linear-gradient(135deg, var(--neon-green), #00aa00);
             color: var(--neon-green);
         }
-        
+
         .orbiting-planet:nth-child(3) {
             top: 100%;
             left: 50%;
             background: linear-gradient(135deg, var(--neon-orange), #cc5500);
             color: var(--neon-orange);
         }
-        
+
         .orbiting-planet:nth-child(4) {
             top: 50%;
             left: 0;
             background: linear-gradient(135deg, var(--neon-pink), #cc00aa);
             color: var(--neon-pink);
         }
-        
+
         /* 功能区样式 */
         .section-title {
             font-family: 'Orbitron', sans-serif;
@@ -333,7 +333,7 @@
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .section-title::after {
             content: '';
             position: absolute;
@@ -343,7 +343,7 @@
             height: 3px;
             background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
         }
-        
+
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -352,7 +352,7 @@
             margin: 0 auto;
             padding: 0 5%;
         }
-        
+
         .cyber-card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -363,7 +363,7 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             backdrop-filter: blur(5px);
         }
-        
+
         .cyber-card::before {
             content: '';
             position: absolute;
@@ -373,18 +373,18 @@
             height: 5px;
             background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
         }
-        
+
         .cyber-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
         }
-        
+
         .card-header {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
         .pulsing-badge {
             background: var(--neon-pink);
             color: white;
@@ -395,20 +395,20 @@
             margin-right: 15px;
             animation: pulse 2s infinite;
         }
-        
+
         .neon-divider {
             color: var(--neon-blue);
             margin: 0 10px;
             font-weight: bold;
         }
-        
+
         .hologram-display {
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
             align-items: center;
         }
-        
+
         .floating-text {
             flex: 1;
             padding: 20px;
@@ -418,7 +418,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .floating-text::before {
             content: '';
             position: absolute;
@@ -426,13 +426,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, 
-                transparent 48%, 
-                rgba(0, 255, 255, 0.1) 50%, 
+            background: linear-gradient(45deg,
+                transparent 48%,
+                rgba(0, 255, 255, 0.1) 50%,
                 transparent 52%);
             animation: hologram 3s linear infinite;
         }
-        
+
         .qr-portal {
             width: 120px;
             height: 120px;
@@ -444,12 +444,12 @@
             animation: rotatePortal 8s linear infinite;
             background: rgba(0, 0, 0, 0.3);
         }
-        
+
         .qr-portal i {
             font-size: 50px;
             color: var(--neon-blue);
         }
-        
+
         .neon-button {
             display: block;
             width: 100%;
@@ -468,7 +468,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .neon-button::before {
             content: '';
             position: absolute;
@@ -479,23 +479,23 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: all 0.6s ease;
         }
-        
+
         .neon-button:hover::before {
             left: 100%;
         }
-        
+
         .neon-button:hover {
             box-shadow: 0 0 20px var(--neon-blue);
             transform: translateY(-3px);
         }
-        
+
         .tool-matrix {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .tool-cell {
             background: rgba(0, 20, 40, 0.5);
             border-radius: 10px;
@@ -508,25 +508,25 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .tool-cell:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
             border-color: var(--neon-blue);
         }
-        
+
         .tool-cell i {
             font-size: 40px;
             margin-bottom: 15px;
             color: var(--neon-blue);
         }
-        
+
         .training-arena {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
         }
-        
+
         .training-game {
             background: rgba(0, 20, 40, 0.5);
             border-radius: 10px;
@@ -537,12 +537,12 @@
             align-items: center;
             transition: all 0.3s ease;
         }
-        
+
         .training-game:hover {
             border-color: var(--neon-green);
             transform: translateY(-5px);
         }
-        
+
         .game-preview {
             width: 100%;
             height: 150px;
@@ -555,31 +555,31 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .grid-lines {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 linear-gradient(90deg, transparent 95%, rgba(0, 255, 255, 0.1) 95%),
                 linear-gradient(0deg, transparent 95%, rgba(0, 255, 255, 0.1) 95%);
             background-size: 20px 20px;
         }
-        
+
         .chinese-char {
             font-size: 60px;
             font-weight: bold;
             color: var(--neon-green);
             animation: float 3s ease-in-out infinite;
         }
-        
+
         .card-flip-animation {
             width: 100px;
             height: 100px;
             perspective: 1000px;
             margin: 0 auto;
         }
-        
+
         .card-flip-inner {
             position: relative;
             width: 100%;
@@ -589,7 +589,7 @@
             transform-style: preserve-3d;
             animation: flip 5s infinite;
         }
-        
+
         .card-front, .card-back {
             position: absolute;
             width: 100%;
@@ -601,66 +601,37 @@
             border-radius: 10px;
             font-size: 40px;
         }
-        
+
         .card-front {
             background: linear-gradient(135deg, var(--neon-blue), #0066cc);
         }
-        
+
         .card-back {
             background: linear-gradient(135deg, var(--neon-orange), #cc5500);
             transform: rotateY(180deg);
         }
-        
+
         .game-lab {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 20px;
+            display: flex;
+            flex-direction: row;
         }
-        
+
         .main-game {
             background: rgba(0, 20, 40, 0.5);
             border-radius: 10px;
-            padding: 20px;
+            padding: 60px;
             border: 1px solid rgba(0, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 300px;
+            min-height: 400px;
         }
-        
-        .pixel-snake {
-            width: 200px;
-            height: 200px;
-            position: relative;
-            margin: 20px 0;
-        }
-        
-        .snake-body {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: var(--neon-green);
-            box-shadow: 0 0 5px var(--neon-green);
-        }
-        
-        .snake-head {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: var(--neon-blue);
-            box-shadow: 0 0 10px var(--neon-blue);
-        }
-        
-        .snake-food {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: var(--neon-pink);
-            box-shadow: 0 0 10px var(--neon-pink);
-            border-radius: 50%;
-        }
-        
+
+
         .glow-play {
             background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
             border: none;
@@ -674,18 +645,18 @@
             transition: all 0.3s ease;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
         }
-        
+
         .glow-play:hover {
             transform: scale(1.05);
             box-shadow: 0 0 25px var(--neon-blue);
         }
-        
+
         .upcoming-games {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-        
+
         .coming-soon {
             flex: 1;
             background: rgba(0, 20, 40, 0.5);
@@ -698,26 +669,26 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .coming-soon::before {
             content: '';
             position: absolute;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, 
-                transparent 48%, 
-                rgba(0, 255, 255, 0.1) 50%, 
+            background: linear-gradient(45deg,
+                transparent 48%,
+                rgba(0, 255, 255, 0.1) 50%,
                 transparent 52%);
             animation: hologram 3s linear infinite;
         }
-        
+
         .encrypted-title {
             font-family: 'Orbitron', sans-serif;
             color: var(--neon-orange);
             text-align: center;
             z-index: 1;
         }
-        
+
         /* 未来区 */
         .wormhole-preview {
             max-width: 1200px;
@@ -725,7 +696,7 @@
             padding: 0 5%;
             text-align: center;
         }
-        
+
         .flicker-text {
             font-family: 'Orbitron', sans-serif;
             font-size: 2.5rem;
@@ -734,14 +705,14 @@
             -webkit-text-fill-color: transparent;
             animation: flicker 1.5s infinite alternate;
         }
-        
+
         .teaser-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin: 50px 0;
         }
-        
+
         .teaser-card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -754,28 +725,28 @@
             flex-direction: column;
             justify-content: center;
         }
-        
+
         .static-noise {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                repeating-linear-gradient(0deg, 
-                    rgba(0,0,0,0.15), 
-                    rgba(0,0,0,0.15) 1px, 
-                    transparent 1px, 
+            background:
+                repeating-linear-gradient(0deg,
+                    rgba(0,0,0,0.15),
+                    rgba(0,0,0,0.15) 1px,
+                    transparent 1px,
                     transparent 4px),
-                repeating-linear-gradient(90deg, 
-                    rgba(0,0,0,0.15), 
-                    rgba(0,0,0,0.15) 1px, 
-                    transparent 1px, 
+                repeating-linear-gradient(90deg,
+                    rgba(0,0,0,0.15),
+                    rgba(0,0,0,0.15) 1px,
+                    transparent 1px,
                     transparent 4px);
             opacity: 0.5;
             animation: static 0.2s infinite;
         }
-        
+
         .partial-reveal {
             position: relative;
             font-family: 'Orbitron', sans-serif;
@@ -783,7 +754,7 @@
             color: var(--neon-pink);
             z-index: 2;
         }
-        
+
         .countdown-module {
             display: inline-flex;
             align-items: center;
@@ -794,7 +765,7 @@
             border: 1px solid var(--neon-blue);
             margin-top: 30px;
         }
-        
+
         .digital-counter {
             font-family: 'Orbitron', sans-serif;
             font-size: 3rem;
@@ -802,17 +773,17 @@
             min-width: 60px;
             text-align: center;
         }
-        
+
         .unit {
             font-size: 1.5rem;
             color: var(--neon-blue);
         }
-        
+
         .label {
             font-size: 1.2rem;
             color: #aaa;
         }
-        
+
         /* 页脚 */
         footer {
             background: rgba(5, 8, 17, 0.9);
@@ -821,7 +792,7 @@
             border-top: 1px solid rgba(0, 255, 255, 0.2);
             margin-top: 80px;
         }
-        
+
         .footer-links {
             display: flex;
             justify-content: center;
@@ -829,68 +800,68 @@
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
-        
+
         .footer-link {
             color: #aaa;
             text-decoration: none;
             transition: color 0.3s ease;
         }
-        
+
         .footer-link:hover {
             color: var(--neon-blue);
         }
-        
+
         .copyright {
             color: #777;
             font-size: 0.9rem;
         }
-        
+
         /* 动画 */
         @keyframes rotateCube {
             from { transform: rotateX(0) rotateY(0) rotateZ(0); }
             to { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
         }
-        
+
         @keyframes scan {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
-        
+
         @keyframes orbit {
             from { transform: translate(-50%, -50%) rotate(0deg); }
             to { transform: translate(-50%, -50%) rotate(360deg); }
         }
-        
+
         @keyframes pulse {
             0% { box-shadow: 0 0 10px currentColor; }
             100% { box-shadow: 0 0 30px currentColor; }
         }
-        
+
         @keyframes hologram {
             0% { background-position: 0 0; }
             100% { background-position: 0 100px; }
         }
-        
+
         @keyframes rotatePortal {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        
+
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-15px); }
             100% { transform: translateY(0px); }
         }
-        
+
         @keyframes flip {
             0% { transform: rotateY(0deg); }
             50% { transform: rotateY(180deg); }
             100% { transform: rotateY(360deg); }
         }
-        
+
         @keyframes flicker {
             0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-                text-shadow: 
+                text-shadow:
                     0 0 5px var(--neon-orange),
                     0 0 15px var(--neon-orange),
                     0 0 20px var(--neon-orange);
@@ -901,106 +872,106 @@
                 opacity: 0.7;
             }
         }
-        
+
         @keyframes static {
             0% { background-position: 0 0; }
             100% { background-position: 20px 20px; }
         }
-        
+
         /* 响应式设计 */
         @media (max-width: 992px) {
             .hero h1 {
                 font-size: 3.5rem;
             }
-            
+
             .cube-hub {
                 width: 250px;
                 height: 250px;
             }
-            
+
             .cube-face-main:nth-child(1) { transform: rotateY(0deg) translateZ(125px); }
             .cube-face-main:nth-child(2) { transform: rotateY(90deg) translateZ(125px); }
             .cube-face-main:nth-child(3) { transform: rotateY(180deg) translateZ(125px); }
             .cube-face-main:nth-child(4) { transform: rotateY(270deg) translateZ(125px); }
-            
+
             .planet-orbit {
                 width: 350px;
                 height: 350px;
             }
-            
+
             .orbiting-planet {
                 width: 50px;
                 height: 50px;
                 font-size: 18px;
             }
         }
-        
+
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
                 gap: 20px;
             }
-            
+
             .hero h1 {
                 font-size: 2.8rem;
             }
-            
+
             .hero p {
                 font-size: 1.2rem;
             }
-            
+
             .cube-hub {
                 width: 200px;
                 height: 200px;
             }
-            
+
             .cube-face-main:nth-child(1) { transform: rotateY(0deg) translateZ(100px); }
             .cube-face-main:nth-child(2) { transform: rotateY(90deg) translateZ(100px); }
             .cube-face-main:nth-child(3) { transform: rotateY(180deg) translateZ(100px); }
             .cube-face-main:nth-child(4) { transform: rotateY(270deg) translateZ(100px); }
-            
+
             .cube-icon {
                 font-size: 40px;
             }
-            
+
             .cube-title {
                 font-size: 1.4rem;
             }
-            
+
             .planet-orbit {
                 width: 300px;
                 height: 300px;
             }
-            
+
             .orbiting-planet {
                 width: 40px;
                 height: 40px;
                 font-size: 16px;
             }
-            
+
             .game-lab {
                 grid-template-columns: 1fr;
             }
         }
-        
+
         @media (max-width: 480px) {
             nav {
                 flex-wrap: wrap;
                 justify-content: center;
             }
-            
+
             .hero h1 {
                 font-size: 2.2rem;
             }
-            
+
             .section-title {
                 font-size: 2rem;
             }
-            
+
             .hologram-display {
                 flex-direction: column;
             }
-            
+
             .qr-portal {
                 width: 100px;
                 height: 100px;
@@ -1022,22 +993,22 @@
             </div>
             <div class="logo-text">✌YeYiYe✌</div>
         </div>
-        
+
         <nav>
             <a href="#english" class="glow-button">英语阅读舱</a>
             <a href="#cybertools" class="glow-button">创客工具箱</a>
             <a href="#brain" class="glow-button">脑力训练营</a>
             <a href="#games" class="glow-button">游戏实验室</a>
         </nav>
-        
+
         <div class="cyber-scanner"></div>
     </header>
-    
+
     <!-- 主视觉区 -->
     <section id="me" class="hero">
         <h1>✌YeYiYe✌ 创意魔方</h1>
         <p>激发创意，探索知识，快乐成长的学习平台</p>
-        
+
         <div class="cube-hub">
             <div class="magic-cube">
                 <div class="cube-face-main">
@@ -1061,7 +1032,7 @@
                     <div class="cube-desc">创意游戏激发潜能</div>
                 </div>
             </div>
-            
+
             <div class="planet-orbit">
                 <div class="orbiting-planet"><i class="fas fa-exchange-alt"></i></div>
                 <div class="orbiting-planet"><i class="fas fa-calculator"></i></div>
@@ -1070,11 +1041,11 @@
             </div>
         </div>
     </section>
-    
+
     <!-- 功能区展示 -->
     <div class="container">
         <h2 class="section-title">核心功能模块</h2>
-        
+
         <div class="features-grid">
             <!-- 英语阅读舱 -->
             <div class="cyber-card reading-pod">
@@ -1082,7 +1053,7 @@
                     <span class="pulsing-badge">NEW</span>
                     <h3>今日能量阅读 <span class="neon-divider">|</span> <span id="today-date">2025年7月10日</span></h3>
                 </div>
-                
+
                 <div class="hologram-display">
                     <div class="floating-text">
                         <h4>《The Robot's Picnic》</h4>
@@ -1093,18 +1064,18 @@
                         <img src="WXQR.jpg" alt="weixin" width="100" height="100">
                     </div>
                 </div>
-                
+
                 <button class="neon-button warp-drive">启动阅读引擎</button>
             </div>
-            
+
             <!-- 创客工具箱 -->
             <div id="cybertools" class="cyber-card">
                 <h3><i class="fas fa-tools"></i> 创客工具箱</h3>
                 <p>实用工具集合，助力学习与创造</p>
-                
+
                 <div class="tool-matrix">
                     <div class="tool-cell"><a href="/tools/3Munitc0vert.html" style="text-decoration: none;">
-                        <i class="fas fa-exchange-alt"></i>
+                        <i class="fas fa-exchange-alt"></i></a>
                         <div class="tool-name">3M单位转换器</div>
                     </div>
                     <div class="tool-cell">
@@ -1120,27 +1091,27 @@
                         <div class="tool-name">zzZ</div>
                     </div>
                 </div>
-                
+
                 <div class="cyber-card future-tool" style="margin-top: 20px; background: rgba(0, 20, 40, 0.3);">
                     <div class="unknown-signal">📡 侦测到新工具信号... 即将抵达</div>
                 </div>
             </div>
-            
+
             <!-- 脑力训练营 -->
             <div id="brain" class="cyber-card">
                 <h3><i class="fas fa-brain"></i> 脑力训练营</h3>
                 <p>提升专注力、记忆力和思维能力的训练场</p>
-                
+
                 <div class="training-arena">
                     <div class="training-game"><a href="/games/shuerte1.html" style="text-decoration: none;">
                         <div class="game-preview">
                             <div class="grid-lines"></div>
                             <div class="chinese-char">诗</div>
-                        </div>
+                        </div></a>
                         <h4>数字古诗挑战</h4>
                         <p>结合古诗与舒尔特方格的创新训练</p>
                     </div>
-                    
+
                     <div class="training-game"><a href="/games/jiyi1.html" style="text-decoration: none;">
                         <div class="game-preview">
                             <div class="card-flip-animation">
@@ -1152,31 +1123,49 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div></a>
                         <h4>记忆超导体</h4>
                         <p>卡牌记忆力专项训练</p>
                     </div>
-                    
+
                     <div id="games" class="training-game"><a href="/games/shuxue1.html" style="text-decoration: none;">
                         <div class="game-preview">
                             <i class="fas fa-calculator" style="font-size: 60px; color: var(--neon-orange);"></i>
-                        </div>
+                        </div></a>
                         <h4>闪电计算力</h4>
                         <p>数学计算速度训练</p>
                     </div>
                 </div>
             </div>
-            
+
+
+        <div class="cyber-card">
+                <h3><i class="fas fa-gamepad"></i> 游戏实验室</h3>
+                <p>在游戏中学习，激发无限创意</p>
+                <br/>
+                    <div class="game-lab">
+                        <div class="main-game">
+                            <h4>数独</h4>
+                            <p>1245789，还差...3和6</p>
+                            <br/><br/><br/>
+                            <div class="pixel-snake">
+                                <img src="sudoku.png" alt="sudu" width="100" height="100" style="margin: 0 50px;">
+                            </div>
+                            <br/><br/><br/>
+                            <button class="glow-play"><a href="/games/sudoku1.html" style="text-decoration: none;">数字?数独启动</a></button>
+                        </div>
+                    </div>
+        </div>
             <!-- 游戏实验室 -->
             <div class="cyber-card">
                 <h3><i class="fas fa-gamepad"></i> 游戏实验室</h3>
                 <p>在游戏中学习，激发无限创意</p>
-                
+                <br/>
                 <div class="game-lab">
-                    <div class="main-game"><a href="/games/tancfk1.html" style="text-decoration: none;">
+                    <div class="main-game">
                         <h4>贪吃方块</h4>
                         <p>玩着玩着场地就炸了？？？</p>
-                        
+                        <br/>
                         <div class="pixel-snake">
                             <!--
                             <div class="snake-body" style="top: 80px; left: 80px;"></div>
@@ -1187,43 +1176,37 @@
                             -->
                             <img src="fangkuai.png" alt="weixin" width="100" height="200" style="margin: 0 50px;">
                         </div>
-                        
-                        <button class="glow-play">启动贪吃方块</button>
-                    </div>
-                    
-                    <div class="upcoming-games">
-                        <div class="coming-soon">
-                            <div class="encrypted-title">🚧 </div>
-                        </div>
-                        <div class="coming-soon">
-                            <div class="encrypted-title">🛸 </div>
-                        </div>
+                        <br/>
+                        <button class="glow-play"><a href="/games/tancfk1.html" style="text-decoration: none;">启动贪吃方块</a></button>
                     </div>
                 </div>
             </div>
         </div>
-        
+
+
+
+
         <!-- 未来区 -->
         <div class="wormhole-preview">
             <h2><span class="flicker-text">正在穿越虫洞的项目</span></h2>
-            
+
             <div class="teaser-grid">
                 <div class="teaser-card">
                     <div class="static-noise"></div>
                     <div class="partial-reveal">单词太空战...</div>
                 </div>
-                
+
                 <div class="teaser-card">
                     <div class="static-noise"></div>
                     <div class="partial-reveal">化学分子建造者...</div>
                 </div>
-                
+
                 <div class="teaser-card">
                     <div class="static-noise"></div>
                     <div class="partial-reveal">历史时空旅行...</div>
                 </div>
             </div>
-            
+
             <div class="countdown-module">
                 <div class="digital-counter">7</div>
                 <div class="unit">天</div>
@@ -1231,7 +1214,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 页脚 -->
     <footer>
         <div class="footer-links">
@@ -1249,22 +1232,22 @@
         const today = new Date();
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('today-date').textContent = today.toLocaleDateString('zh-CN', options);
-        
+
         // 添加悬停效果增强
         document.querySelectorAll('.glow-button, .tool-cell, .training-game').forEach(item => {
             item.addEventListener('mouseenter', () => {
                 const colors = ['var(--neon-blue)', 'var(--neon-green)', 'var(--neon-orange)', 'var(--neon-pink)'];
                 const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                
+
                 // 创建粒子效果
                 createParticles(item, randomColor);
             });
         });
-        
+
         function createParticles(element, color) {
             const rect = element.getBoundingClientRect();
             const particleCount = 15;
-            
+
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.style.position = 'fixed';
@@ -1274,23 +1257,23 @@
                 particle.style.borderRadius = '50%';
                 particle.style.pointerEvents = 'none';
                 particle.style.zIndex = '9999';
-                
+
                 // 随机位置
                 const x = rect.left + Math.random() * rect.width;
                 const y = rect.top + Math.random() * rect.height;
                 particle.style.left = `${x}px`;
                 particle.style.top = `${y}px`;
-                
+
                 document.body.appendChild(particle);
-                
+
                 // 动画
                 const angle = Math.random() * Math.PI * 2;
                 const distance = 50 + Math.random() * 100;
                 const duration = 500 + Math.random() * 1000;
-                
+
                 const targetX = x + Math.cos(angle) * distance;
                 const targetY = y + Math.sin(angle) * distance;
-                
+
                 particle.animate([
                     { transform: `translate(0, 0)`, opacity: 1 },
                     { transform: `translate(${targetX - x}px, ${targetY - y}px)`, opacity: 0 }
@@ -1299,7 +1282,7 @@
                     easing: 'ease-out',
                     fill: 'forwards'
                 });
-                
+
                 // 移除元素
                 setTimeout(() => {
                     particle.remove();
