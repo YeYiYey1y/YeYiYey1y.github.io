@@ -1,0 +1,242 @@
+[
+                {
+                    word: "apple", 
+                    image: "multimedia/apple.png",
+                    audio: "multimedia/apple.mp3",
+                    phonetic: "/ˈæp.əl/",
+                    translation: "苹果",
+                    examples: [
+                        "I eat an apple every day for breakfast.",
+                        "The teacher placed a shiny red apple on her desk."
+                    ],
+                    translations: [
+                        "我每天早餐吃一个苹果。",
+                        "老师在桌子上放了一个闪亮的红苹果。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "beach", 
+                    image: "multimedia/beach.png",
+                    audio: "multimedia/beach.mp3",
+                    phonetic: "/biːtʃ/",
+                    translation: "海滩",
+                    examples: [
+                        "Children built sandcastles on the sunny beach.",
+                        "We collected beautiful seashells along the beach."
+                    ],
+                    translations: [
+                        "孩子们在阳光明媚的海滩上堆沙堡。",
+                        "我们沿着海滩收集了美丽的贝壳。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "cloud", 
+                    image: "multimedia/cloud.png",
+                    audio: "multimedia/cloud.mp3",
+                    phonetic: "/klaʊd/",
+                    translation: "云",
+                    examples: [
+                        "The airplane flew through the fluffy white cloud.",
+                        "Dark clouds gathered before the thunderstorm."
+                    ],
+                    translations: [
+                        "飞机飞过蓬松的白云。",
+                        "雷雨前乌云密布。"
+                    ],
+                    level: 2
+                },
+                {
+                    word: "dream", 
+                    image: "multimedia/dream.png",
+                    audio: "multimedia/dream.mp3",
+                    phonetic: "/driːm/",
+                    translation: "梦想",
+                    examples: [
+                        "Last night I had a strange dream about flying.",
+                        "Her dream is to become a famous scientist."
+                    ],
+                    translations: [
+                        "昨晚我做了一个关于飞行的奇怪梦。",
+                        "她的梦想是成为一名著名的科学家。"
+                    ],
+                    level: 2
+                },
+                {
+                    word: "EARTH", 
+                    image: "multimedia/earth.png",
+                    audio: "multimedia/earth.mp3",
+                    phonetic: "/ɜːrθ/",
+                    translation: "地球",
+                    examples: [
+                        "The Earth orbits around the Sun once a year.",
+                        "We must protect our planet Earth from pollution."
+                    ],
+                    translations: [
+                        "地球每年绕太阳公转一圈。",
+                        "我们必须保护我们的地球免受污染。"
+                    ],
+                    level: 3
+                },
+                {
+                    word: "FLOWER", 
+                    image: "multimedia/flower.png",
+                    audio: "multimedia/flower.mp3",
+                    phonetic: "/ˈflaʊ.ər/",
+                    translation: "花",
+                    examples: [
+                        "She received a beautiful bouquet of flowers.",
+                        "The garden is full of colorful flowers in spring."
+                    ],
+                    translations: [
+                        "她收到了一束美丽的花。",
+                        "春天里花园里开满了五颜六色的花。"
+                    ],
+                    level: 3
+                },
+                {
+                    word: "GARDEN", 
+                    image: "multimedia/garden.png",
+                    audio: "multimedia/garden.mp3",
+                    phonetic: "/ˈɡɑːr.dən/",
+                    translation: "花园",
+                    examples: [
+                        "My grandmother grows vegetables in her garden.",
+                        "The children played hide-and-seek in the large garden."
+                    ],
+                    translations: [
+                        "我祖母在她的花园里种蔬菜。",
+                        "孩子们在宽敞的花园里玩捉迷藏。"
+                    ],
+                    level: 4
+                },
+                {
+                    word: "HOUSE", 
+                    image: "multimedia/house.png",
+                    audio: "multimedia/house.mp3",
+                    phonetic: "/haʊs/",
+                    translation: "房子",
+                    examples: [
+                        "They moved into their new house last month.",
+                        "The little house by the lake looked very cozy."
+                    ],
+                    translations: [
+                        "他们上个月搬进了新房子。",
+                        "湖边的小房子看起来非常舒适。"
+                    ],
+                    level: 4
+                },
+                {
+                    word: "IGLOO", 
+                    image: "multimedia/igloo.png",
+                    audio: "multimedia/igloo.mp3",
+                    phonetic: "/ˈɪɡ.luː/",
+                    translation: "冰屋",
+                    examples: [
+                        "Eskimos build igloos from blocks of ice and snow.",
+                        "The explorers took shelter in an abandoned igloo."
+                    ],
+                    translations: [
+                        "爱斯基摩人用冰块和雪块建造冰屋。",
+                        "探险家们在一座废弃的冰屋里避难。"
+                    ],
+                    level: 5
+                },
+                {
+                    word: "JELLY", 
+                    image: "multimedia/jelly.png",
+                    audio: "multimedia/jelly.mp3",
+                    phonetic: "/ˈdʒel.i/",
+                    translation: "果冻",
+                    examples: [
+                        "The children love eating strawberry jelly sandwiches.",
+                        "She made colorful jelly desserts for the party."
+                    ],
+                    translations: [
+                        "孩子们喜欢吃草莓果冻三明治。",
+                        "她为聚会制作了色彩缤纷的果冻甜点。"
+                    ],
+                    level: 5
+                },
+                {
+                    word: "KNIGHT", 
+                    image: "multimedia/knight.png",
+                    audio: "multimedia/knight.mp3",
+                    phonetic: "/naɪt/",
+                    translation: "骑士",
+                    examples: [
+                        "The knight in shining armor rescued the princess.",
+                        "In medieval times, knights followed a code of chivalry."
+                    ],
+                    translations: [
+                        "穿着闪亮盔甲的骑士解救了公主。",
+                        "在中世纪，骑士遵循骑士精神准则。"
+                    ],
+                    level: 3
+                },
+                {
+                    word: "LION", 
+                    image: "multimedia/lion.png",
+                    audio: "multimedia/lion.mp3",
+                    phonetic: "/ˈlaɪ.ən/",
+                    translation: "狮子",
+                    examples: [
+                        "The lion is known as the king of the jungle.",
+                        "We saw a pride of lions resting under the tree."
+                    ],
+                    translations: [
+                        "狮子被称为丛林之王。",
+                        "我们看到一群狮子在树下休息。"
+                    ],
+                    level: 2
+                },
+                {
+                    word: "MOUNTAIN", 
+                    image: "multimedia/mountain.png",
+                    audio: "multimedia/mountain.mp3",
+                    phonetic: "/ˈmaʊn.tən/",
+                    translation: "山",
+                    examples: [
+                        "They climbed the highest mountain in the region.",
+                        "The mountain range was covered in snow all year round."
+                    ],
+                    translations: [
+                        "他们攀登了该地区最高的山。",
+                        "山脉终年被积雪覆盖。"
+                    ],
+                    level: 4
+                },
+                {
+                    word: "NIGHT", 
+                    image: "multimedia/night.png",
+                    audio: "multimedia/night.mp3",
+                    phonetic: "/naɪt/",
+                    translation: "夜晚",
+                    examples: [
+                        "The stars shine brightly in the night sky.",
+                        "We sat around the campfire telling stories late into the night."
+                    ],
+                    translations: [
+                        "星星在夜空中明亮地闪烁。",
+                        "我们围坐在篝火旁讲故事直到深夜。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "OCEAN", 
+                    image: "multimedia/ocean.png",
+                    audio: "multimedia/ocean.mp3",
+                    phonetic: "/ˈoʊ.ʃən/",
+                    translation: "海洋",
+                    examples: [
+                        "The ocean covers more than 70% of the Earth's surface.",
+                        "We could hear the sound of the ocean waves from our hotel room."
+                    ],
+                    translations: [
+                        "海洋覆盖了地球表面70%以上的面积。",
+                        "我们在酒店房间里能听到海浪的声音。"
+                    ],
+                    level: 3
+                }
+]
