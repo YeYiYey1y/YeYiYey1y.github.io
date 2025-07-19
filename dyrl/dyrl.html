@@ -352,7 +352,7 @@
                 
                 // 背景音乐
                 this.backgroundMusic = document.getElementById('backgroundMusic');
-                this.backgroundMusic.volume = 0.85;
+                this.backgroundMusic.volume = 0.95;
                 
                 // 音效
                 this.stageTransitionSound = document.getElementById('stageTransitionSound');
@@ -529,7 +529,7 @@
             }
             
             // 播放音效
-            playSound(sound, volume = 1.0) {
+            playSound(sound, volume = 0.4) {
                 try {
                     sound.volume = volume * parseFloat(document.getElementById('sfxBar').style.width || '100%') / 100;
                     sound.currentTime = 0;
@@ -685,7 +685,7 @@
                         // 第三阶段结束，激活激光攻击
                         const boss = this.enemies.find(e => e.type === 'boss');
                         if (boss) {
-                            boss.health = 40; // 设置有限的生命值
+                            boss.health = 50; // 设置有限的生命值
                             this.laserActive = true;
                             this.laserStartTime = currentTime;
                             this.laserTarget = boss;
