@@ -302,7 +302,7 @@
                 this.stageStartTime = 0;
                 this.stage1Duration = 110 * 1000; // 第一阶段持续60秒
                 this.stage2Duration = 103 * 1000; // 第二阶段持续90秒
-                this.stage3Duration = 72 * 1000; // 第三阶段持续120秒
+                this.stage3Duration = 75 * 1000; // 第三阶段持续120秒
                 
                 // 游戏实体
                 this.player = null;
@@ -685,7 +685,8 @@
                         // 第三阶段结束，激活激光攻击
                         const boss = this.enemies.find(e => e.type === 'boss');
                         if (boss) {
-                            boss.health = 50; // 设置有限的生命值
+                            // setTimeout("boss.health = 0;", 3000) // 设置有限的生命值
+                            boss.health = 0;
                             this.laserActive = true;
                             this.laserStartTime = currentTime;
                             this.laserTarget = boss;
@@ -1096,15 +1097,37 @@
                         
                         // 持续对BOSS造成伤害
                         if (this.laserTarget && this.laserTarget.type === 'boss') {
-                            this.laserTarget.takeDamage(1 * deltaTime);
+                            // 修复伤害计算，10点伤害/秒，5秒共造成50点伤害
+                    this.laserTarget.takeDamage(10 * deltaTime / 1000);
                         }
                     }
                     
                     // 激光结束后BOSS爆炸
                     if (progress >= 1 && this.laserTarget && this.laserTarget.type === 'boss') {
                         this.laserActive = false;
-                        this.laserTarget.explode();
-                        this.bossDefeated = true;
+                    this.laserTarget.health = 0; // 设置生命值为0
+                    this.laserTarget.explode();
+                    // 延迟标记BOSS死亡，确保撞击时实体存在
+                    // this.laserTarget.isDead = true; // 暂时不标记死亡
+                    boss.health = 0
+                    // 激活玩家自动导航撞击BOSS后撤退
+                    console.log('激活自动导航前玩家状态:', this.player);
+                    this.player.autoPilotActive = true;
+                    // 发射激光时立即触发自动导航
+                      if (this.laserTarget) {
+                          this.player.autoPilotPhase = 'approach'; // 立即设置导航阶段
+                          this.player.autoPilotTarget = this.laserTarget;
+                          this.laserTarget.speed = 0; // 冻结BOSS移动
+                          console.log('发射激光时立即触发自动导航，阶段: approach');
+                      }
+                    console.log('自动导航激活，目标BOSS:', this.laserTarget);
+                    this.player.originalPosition = {
+                        x: this.player.x,
+                        y: this.player.y
+                    };
+                    
+                    this.bossDefeated = true;
+                    console.log('BOSS已击败，启动自动导航撞击');
                     }
                 }
                 
@@ -1368,6 +1391,11 @@
                 
                 // 引擎效果
                 this.engineParticles = [];
+                // 自动导航相关属性
+                this.autoPilotActive = false; // 是否启用自动导航
+                this.autoPilotPhase = 'approach'; // 导航阶段: approach-接近, retreat-撤退
+                this.autoPilotTarget = null; // 导航目标坐标
+                this.originalPosition = {x: 0, y: 0}; // 原始位置(用于撤退)
             }
             
             // BOSS阶段进化
@@ -1387,20 +1415,79 @@
                     this.invincibleTime -= deltaTime;
                 }
                 
-                // 触摸控制
-                if (this.game.isTouching) {
-                    // 计算移动方向
-                    const targetX = this.game.touchX - this.width / 2;
-                    const targetY = this.game.touchY - this.height / 2;
-                    
-                    // 平滑移动
-                    const dx = targetX - this.x;
-                    const dy = targetY - this.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance > 1) {
-                        this.x += (dx / distance) * this.speed;
-                        this.y += (dy / distance) * this.speed;
+                // 自动导航逻辑
+                if (this.autoPilotActive) {
+                    if (this.autoPilotPhase === 'approach' && this.autoPilotTarget) {
+                        // 计算BOSS中心位置作为目标
+                        // 使用游戏内置碰撞检测替代距离判断
+                        if (!this.game.isColliding(this, this.autoPilotTarget)) { // 未发生碰撞时继续接近
+                            const moveSpeed = this.speed * 5; // 调整为适中速度
+                            const moveStep = moveSpeed * (deltaTime / 16); // 使用标准帧率计算
+                            // 直接向BOSS中心移动
+                            const targetX = this.autoPilotTarget.x + this.autoPilotTarget.width/2;
+                            const targetY = this.autoPilotTarget.y + this.autoPilotTarget.height/2;
+                            const dx = targetX - (this.x + this.width/2);
+                            const dy = targetY - (this.y + this.height/2);
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance > 0) {
+                                this.x += (dx / distance) * moveStep;
+                                this.y += (dy / distance) * moveStep;
+                            }
+                        } else {
+                            // 到达目标，切换到撤退阶段
+                            this.autoPilotPhase = 'retreat';
+                            // 标记BOSS为死亡并从敌人数组移除
+                            this.autoPilotTarget.isDead = true;
+                            this.game.enemies = this.game.enemies.filter(enemy => !enemy.isDead);
+                            // 添加碰撞爆炸效果并记录日志
+                            console.log('玩家撞击BOSS！位置:', this.x, this.y);
+                            this.game.addExplosion(this.x + this.width/2, this.y + this.height/2, 50); // 增大爆炸效果
+                            this.autoPilotTarget.explode(); // 触发BOSS二次爆炸
+                        }
+                    } else if (this.autoPilotPhase === 'retreat') {
+                        const targetX = this.originalPosition.x;
+                        const targetY = this.originalPosition.y;
+                        
+                        const dx = targetX - this.x;
+                        const dy = targetY - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // 返回原位置
+                        console.log('撤退阶段 - 距离原位置:', distance.toFixed(2), '像素');
+                        if (distance > 30) { // 进一步增加距离阈值，确保可靠完成撤退
+                            const moveSpeed = this.speed * 1.5; // 增加撤退速度
+                            // 使用deltaTime确保撤退速度与帧率无关
+                            const moveStep = moveSpeed * (deltaTime / 16); // 基于60FPS的标准帧率
+                            this.x += (dx / distance) * moveStep;
+                            this.y += (dy / distance) * moveStep;
+                        } else {
+                            // 到达原位置，关闭自动导航
+                            this.autoPilotActive = false;
+                            console.log('自动导航完成，准备触发胜利');
+                            // 导航完成后设置阶段并触发胜利
+                            setTimeout(() => {
+                                console.log('触发胜利界面');
+                                this.game.stage = 4; // 推进到胜利阶段，防止BOSS重生
+                                this.game.victory();
+                            }, 3000); // 延长延迟确保动画完成
+                        }
+                    }
+                } else {
+                    // 触摸控制
+                    if (this.game.isTouching) {
+                        // 计算移动方向
+                        const targetX = this.game.touchX - this.width / 2;
+                        const targetY = this.game.touchY - this.height / 2;
+                        
+                        // 平滑移动
+                        const dx = targetX - this.x;
+                        const dy = targetY - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance > 1) {
+                            this.x += (dx / distance) * this.speed;
+                            this.y += (dy / distance) * this.speed;
+                        }
                     }
                 }
                 
@@ -1890,7 +1977,7 @@
                 // 延迟显示庆祝页面
                 setTimeout(() => {
                     this.game.victory();
-                }, 3000);
+                }, 5000);
             }
         }
         
