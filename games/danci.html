@@ -1,0 +1,3140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词守护者 - 儿童英语学习游戏</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入SheetJS库用于解析XLSX文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Marker Felt', 'Chalkboard SE', sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            color: white;
+            overflow-x: hidden;
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+            max-width: 95%;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            text-shadow: 3px 3px 0 #ff6b6b, 6px 6px 0 #4ecdc4;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #ffd166, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 8s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid #ffd166;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(25, 42, 86, 0.85);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 5px solid #ffd166;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 顶部区域 - 四元素水平排列 */
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .top-section-item {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 12px;
+            border: 2px solid #ffd166;
+        }
+
+        .top-section-title {
+            font-size: 1.1rem;
+            color: #ffd166;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .monster-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            width: 100%;
+        }
+
+        .monster-canvas {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            z-index: 5;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+            animation: floatMonster 4s ease-in-out infinite;
+        }
+
+        @keyframes floatMonster {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .monster-health {
+            position: absolute;
+            top: 8px;
+            left: 10%;
+            width: 80%;
+            background: rgba(0, 0, 0, 0.5);
+            height: 18px;
+            border-radius: 10px;
+            border: 2px solid #ff6b6b;
+            display: flex;
+            overflow: hidden;
+            z-index: 6; /* 提高层级确保在怪兽上方 */
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .health-segment {
+            flex: 1;
+            height: 100%;
+            background: #4ecdc4;
+            border-right: 1px solid rgba(0, 0, 0, 0.3);
+            transition: background-color 0.5s ease;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .health-segment:last-child {
+            border-right: none;
+        }
+
+        .health-segment.lost {
+            background: #ff6b6b;
+        }
+
+        .word-image-container {
+            display: flex;
+            justify-content: center;
+            height: 160px;
+            margin: 8px 0;
+        }
+
+        .word-image {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 15px;
+            border: 4px solid #ffd166;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: rgba(255,255,255,0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .word-image:hover {
+            transform: scale(1.05);
+        }
+
+        .word-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .image-fallback {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .image-fallback i {
+            font-size: 3rem;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+        
+        .image-fallback span {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1a2a6c;
+        }
+
+        .word-shield {
+            height: 90px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 8px 0;
+            border: 3px dashed #ffd166;
+            font-size: 2.8rem;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: white;
+            text-shadow: 0 0 10px #4ecdc4;
+            transition: all 0.5s ease;
+            padding: 0 15px;
+            text-align: center;
+            box-shadow: inset 0 0 20px rgba(78, 205, 196, 0.5), 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .letter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0;
+            min-height: 90px;
+            position: relative;
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 10px;
+            border: 2px dashed #ffd166;
+        }
+
+        .letter {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(145deg, #ffd166, #ffb700);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #1a2a6c;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            user-select: none;
+            border: 3px solid #ff6b6b;
+            position: absolute;
+            will-change: transform;
+        }
+
+        .letter:hover, .letter:active {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .letter.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            z-index: 100;
+            border: 3px solid #4ecdc4;
+        }
+
+        .target-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            min-height: 65px;
+            width: 100%;
+        }
+
+        .target {
+            width: 55px;
+            height: 55px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 2px dashed #4ecdc4;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+            will-change: transform;
+            cursor: pointer;
+        }
+
+        .target.filled {
+            border: 2px solid #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            transform: scale(1.05);
+        }
+
+        .target.correct {
+            border: 2px solid #4ecdc4;
+            background: rgba(78, 205, 196, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.7);
+        }
+
+        .target.incorrect {
+            border: 2px solid #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+            animation: shake 0.3s ease-in-out;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.7);
+        }
+
+        .player-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 70px;
+            margin: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #ffd166;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .heart {
+            color: #ff6b6b;
+            margin: 0 2px;
+            font-size: 1.7rem;
+            text-shadow: 0 0 5px rgba(255, 107, 107, 0.8);
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: #4ecdc4;
+            text-shadow: 0 0 5px rgba(78, 205, 196, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 13px 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: linear-gradient(to right, #ff6b6b, #ffd166);
+            color: #1a2a6c;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ffd166, #ff6b6b);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        button:hover::before {
+            opacity: 1;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button#fireBtn.active {
+            background: linear-gradient(to right, #4ecdc4, #1a9e94);
+            box-shadow: 0 0 15px #4ecdc4;
+            color: white;
+        }
+
+        .laser {
+            position: absolute;
+            height: 5px;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0), #ff6b6b, rgba(255, 255, 255, 0));
+            box-shadow: 0 0 10px #ff6b6b;
+            top: 170px;
+            z-index: 10;
+        }
+
+        .monster-laser {
+            position: absolute;
+            height: 8px;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0), #4ecdc4, rgba(255, 255, 255, 0));
+            box-shadow: 0 0 15px #4ecdc4;
+            z-index: 10;
+            transform-origin: left center;
+            border-radius: 4px;
+        }
+
+        .strong-laser {
+            background: linear-gradient(to right, rgba(255, 255, 255, 0), #ff0000, rgba(255, 255, 255, 0));
+            box-shadow: 0 0 20px #ff0000;
+            height: 15px;
+        }
+
+        .super-strong-laser {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ff0000, rgba(255, 255, 255, 0));
+            box-shadow: 0 0 30px #ff0000;
+            height: 100%;
+            width: 25px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes shake-container {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-5px, -5px); }
+            20% { transform: translate(5px, 5px); }
+            30% { transform: translate(-7px, 0); }
+            40% { transform: translate(7px, 0); }
+            50% { transform: translate(-5px, 5px); }
+            60% { transform: translate(5px, -5px); }
+            70% { transform: translate(-7px, -7px); }
+            80% { transform: translate(7px, 7px); }
+            90% { transform: translate(-5px, 0); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .shake {
+            animation: shake 5s ease-in-out;
+        }
+
+        .shake-container {
+            animation: shake-container 0.5s ease;
+        }
+
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .damage {
+            position: absolute;
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.4rem;
+            animation: damage-fly 1.5s forwards;
+            z-index: 20;
+            pointer-events: none;
+            text-shadow: 0 0 5px white;
+        }
+
+        @keyframes damage-fly {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        .level-up {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            z-index: 100;
+            display: none;
+            width: 90%;
+            max-width: 400px;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .level-up h2 {
+            color: #ff6b6b;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .level-up p {
+            color: #1a2a6c;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 99;
+            display: none;
+        }
+
+        .scatter {
+            animation: scatter 0.8s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes scatter {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+            }
+        }
+
+        .bounce {
+            animation: bounce 0.8s forwards;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .attack-letter {
+            position: absolute;
+            z-index: 15;
+            animation: fly-to-monster 0.8s forwards;
+        }
+
+        @keyframes fly-to-monster {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty));
+                opacity: 0;
+            }
+        }
+
+        .monster-attack {
+            animation: monster-attack 1s forwards;
+        }
+
+        @keyframes monster-attack {
+            0%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-20px); }
+            50% { transform: translateY(0) scale(1.1); }
+        }
+
+        .defeated {
+            animation: defeatedAnimation 1.5s forwards;
+        }
+
+        @keyframes defeatedAnimation {
+            0% {
+                transform: translateY(0) rotate(0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-30px) rotate(-180deg) scale(0.7);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(100px) rotate(-360deg) scale(0.1);
+                opacity: 0;
+            }
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ffd166;
+            pointer-events: none;
+            z-index: 20;
+            animation: particleAnim 1.5s forwards;
+            box-shadow: 0 0 5px #ffd166;
+        }
+
+        @keyframes particleAnim {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--p-tx), var(--p-ty));
+                opacity: 0;
+            }
+        }
+
+        .mobile-drag-hint {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #ffd166;
+            opacity: 0.8;
+        }
+
+        /* 对战秘籍弹窗样式 */
+        .word-info-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #1a2a6c, #4ecdc4);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            z-index: 101;
+            display: none;
+            width: 90%;
+            max-width: 500px;
+            color: white;
+            text-align: center;
+            border: 3px solid #ffd166;
+            animation: popIn 0.5s ease;
+        }
+
+        .word-info-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ffd166;
+        }
+
+        .word-info-header h2 {
+            font-size: 2.5rem;
+            color: #ffd166;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .word-info-content {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .word-info-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .word-info-label {
+            font-weight: bold;
+            color: #ffd166;
+            min-width: 80px;
+        }
+
+        .word-info-value {
+            flex: 1;
+        }
+
+        .word-info-examples {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ffd166;
+        }
+
+        .word-info-example {
+            margin-bottom: 10px;
+            font-style: italic;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .word-info-translation {
+            color: #ffd166;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            padding-left: 15px;
+            border-left: 2px solid #ffd166;
+        }
+
+        .word-info-close {
+            background: linear-gradient(to right, #ff6b6b, #ffd166);
+            color: #1a2a6c;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .word-info-close:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 级别选择 */
+        .level-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .level-btn {
+            padding: 8px 12px;
+            background: linear-gradient(to bottom, #4ecdc4, #1a9e94);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .level-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .level-btn.active {
+            background: linear-gradient(to bottom, #ffd166, #ffb700);
+            color: #1a2a6c;
+            box-shadow: 0 0 10px #ffd166;
+        }
+
+        /* 挑战进度 */
+        .challenge-progress {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .progress-item {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .progress-item.active {
+            background: linear-gradient(to bottom, #ffd166, #ffb700);
+            color: #1a2a6c;
+            transform: scale(1.2);
+        }
+
+        .progress-item.completed {
+            background: linear-gradient(to bottom, #4ecdc4, #1a9e94);
+            color: white;
+        }
+
+        .progress-item.failed {
+            background: linear-gradient(to bottom, #ff6b6b, #d84a4a);
+            color: white;
+        }
+
+        /* 奖励弹窗 */
+        .reward-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #ffd166, #ff6b6b);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            z-index: 101;
+            display: none;
+            width: 90%;
+            max-width: 500px;
+            color: #1a2a6c;
+            text-align: center;
+            border: 3px solid #ffd166;
+            animation: popIn 0.5s ease;
+        }
+
+        .reward-content {
+            margin: 20px 0;
+        }
+
+        .reward-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #1a2a6c;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .reward-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .reward-details {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .reward-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .reward-stat {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            min-width: 100px;
+        }
+
+        .reward-label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .reward-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .gold-badge {
+            position: relative;
+            display: inline-block;
+            padding: 5px 15px;
+            background: linear-gradient(45deg, #ffd700, #ffb700);
+            color: #1a2a6c;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 0 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .gold-badge::before {
+            content: '💰';
+            margin-right: 5px;
+        }
+
+        .hit-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .hit-animation {
+            animation: hitEffect 0.6s ease-out;
+        }
+
+        @keyframes hitEffect {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* 上传区域 */
+        .upload-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
+            width: 100%;
+            text-align: center;
+            border: 2px dashed #ffd166;
+        }
+
+        .upload-btn {
+            background: linear-gradient(to right, #4ecdc4, #1a9e94);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #ffd166;
+        }
+
+        .current-wordset {
+            margin-top: 15px;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* 成就徽章 */
+        .achievements {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+        
+        .badge {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: linear-gradient(145deg, #ffd166, #ffb700);
+            color: #1a2a6c;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .badge.locked {
+            background: linear-gradient(145deg, #607d8b, #455a64);
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .badge-info {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 5px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .badge:hover .badge-info {
+            opacity: 1;
+        }
+
+        /* 移动设备优化 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+                text-shadow: 2px 2px 0 #ff6b6b, 4px 4px 0 #4ecdc4;
+            }
+
+            .word-shield {
+                font-size: 2rem;
+                letter-spacing: 5px;
+                height: 80px;
+            }
+
+            .letter {
+                width: 45px;
+                height: 45px;
+                font-size: 1.8rem;
+            }
+
+            .target {
+                width: 45px;
+                height: 45px;
+                font-size: 1.8rem;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .word-image {
+                width: 140px;
+                height: 140px;
+            }
+
+            .monster-canvas {
+                width: 140px;
+                height: 140px;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 1rem;
+                min-width: 130px;
+            }
+
+            .word-info-popup {
+                padding: 20px;
+            }
+
+            .word-info-header h2 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                gap: 12px;
+            }
+            
+            .letter, .target {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .top-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .top-section-item {
+                min-width: 100%;
+            }
+            
+            .level-selector {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .challenge-progress {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .word-shield {
+                font-size: 1.6rem;
+                height: 70px;
+                letter-spacing: 3px;
+                padding: 0 10px;
+            }
+
+            .letter {
+                width: 40px;
+                height: 40px;
+                font-size: 1.6rem;
+            }
+
+            .target {
+                width: 40px;
+                height: 40px;
+                font-size: 1.6rem;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            .word-image {
+                width: 120px;
+                height: 120px;
+            }
+
+            .monster-canvas {
+                width: 120px;
+                height: 120px;
+            }
+
+            button {
+                padding: 10px 15px;
+                font-size: 0.95rem;
+                min-width: 110px;
+                gap: 5px;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            .word-info-popup {
+                padding: 15px;
+            }
+
+            .word-info-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .word-info-row {
+                flex-direction: column;
+            }
+
+            .word-info-label {
+                margin-bottom: 5px;
+            }
+            
+            .game-container {
+                padding: 12px;
+            }
+            
+            .letter, .target {
+                width: 44px;
+                height: 44px;
+            }
+            
+            button {
+                min-width: 140px;
+                padding: 12px 18px;
+            }
+            
+            .player-stats {
+                padding: 10px;
+            }
+            
+            .stat-item {
+                min-width: 65px;
+                margin: 3px;
+            }
+            
+            .mobile-drag-hint {
+                font-size: 1rem;
+                bottom: -22px;
+            }
+        }
+        
+        /* 按钮样式优化 */
+        #startBtn {
+            background: linear-gradient(to right, #4CAF50, #2E7D32) !important;
+        }
+        
+        #fireBtn {
+            background: linear-gradient(to right, #f44336, #c62828) !important;
+        }
+        
+        #hintBtn {
+            background: linear-gradient(to right, #2196F3, #1565C0) !important;
+        }
+        
+        #soundBtn {
+            background: linear-gradient(to right, #9C27B0, #6A1B9A) !important;
+        }
+        
+        #exitBtn {
+            background: linear-gradient(to right, #607D8B, #455A64) !important;
+        }
+        
+        #uploadTrigger {
+            background: linear-gradient(to right, #FF9800, #EF6C00) !important;
+        }
+        
+        .level-btn {
+            background: linear-gradient(to bottom, #4ecdc4, #1a9e94) !important;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 13px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            flex: 1 1 auto;
+            max-width: 200px;
+            text-align: center;
+        }
+        
+        .level-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px 0;
+            width: 100%;
+        }
+        
+        .level-btn {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+        
+        .upload-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .controls {
+                gap: 10px;
+            }
+            
+            button {
+                padding: 12px 15px;
+                font-size: 1rem;
+                min-width: 120px;
+            }
+            
+            .level-btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                min-width: 70px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            button {
+                padding: 12px 15px;
+                font-size: 0.95rem;
+                min-width: 140px;
+            }
+            
+            .level-btn {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+                min-width: 65px;
+            }
+            
+            .letter:active {
+                transform: scale(1.15);
+                transition: transform 0.1s ease;
+                z-index: 100;
+            }
+            
+            .target.filled {
+                transform: scale(1.1);
+            }
+        }
+        
+        /* 移动设备触摸反馈优化 */
+        .letter.touch-active {
+            transform: scale(1.2) !important;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        
+        /* 优化布局 */
+        .monster-label {
+            position: absolute;
+            bottom: -20px;
+            font-size: 1.2rem;
+            color: #ffd166;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .stat-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        /* 修复小怪兽遮挡血条问题 */
+        .monster-area {
+            position: relative;
+        }
+        
+        /* 新添加的成就区 */
+        .achievement-area {
+            margin-top: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid #ffd166;
+        }
+        
+        .achievement-title {
+            text-align: center;
+            color: #ffd166;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>单词守护者</h1>
+        <p>保护单词护盾，拼出正确单词，击败怪兽获取经验值和金币！</p>
+    </div>
+    
+    <div class="game-container">
+        <!-- 顶部区域 - 四元素水平排列 -->
+        <div class="top-section">
+            <!-- 挑战进度 -->
+            <div class="top-section-item">
+                <div class="top-section-title">挑战进度</div>
+                <div class="challenge-progress" id="challengeProgress">
+                    <!-- 挑战进度点将在这里动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 单词怪兽 -->
+            <div class="top-section-item">
+                <div class="top-section-title">单词怪兽</div>
+                <div class="monster-area">
+                    <div class="monster-health" id="monsterHealthBar"></div>
+                    <canvas class="monster-canvas" id="monsterCanvas"></canvas>
+                    <div class="monster-label" id="monsterName">小怪兽</div>
+                </div>
+            </div>
+            
+            <!-- 级别选择器 -->
+            <div class="top-section-item">
+                <div class="top-section-title">选择级别</div>
+                <div class="level-selector" id="levelSelector">
+                    <button class="level-btn" data-level="1">级别 1</button>
+                    <button class="level-btn" data-level="2">级别 2</button>
+                    <button class="level-btn" data-level="3">级别 3</button>
+                    <button class="level-btn" data-level="4">级别 4</button>
+                    <button class="level-btn" data-level="5">级别 5</button>
+                    <button class="level-btn active" data-level="mix">大混战</button>
+                </div>
+            </div>
+            
+            <!-- 状态栏 -->
+            <div class="top-section-item">
+                <div class="top-section-title">玩家状态</div>
+                <div class="stat-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="level">1</div>
+                        <div class="stat-label">等级</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="exp">0</div>
+                        <div class="stat-label">经验值</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="monstersDefeated">0</div>
+                        <div class="stat-label">击败怪兽</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="lives">❤️❤️❤️</div>
+                        <div class="stat-label">生命值</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value"><span class="gold-badge" id="gold">0</span></div>
+                        <div class="stat-label">金币</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="word-shield" id="wordShield">SHIELD</div>
+        
+        <div class="word-image-container">
+            <div class="word-image">
+                <img id="wordImage" src="" alt="单词图片" onerror="handleImageError(this)">
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="target-container" id="targetContainer">
+                <!-- 目标位置将在这里动态生成 -->
+                <div class="mobile-drag-hint">点击字母然后点击此处放置</div>
+            </div>
+            
+            <div class="letter-container" id="letterContainer">
+                <!-- 字母将在这里动态生成 -->
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn"><i class="fas fa-play"></i> 开始挑战</button>
+            <button id="fireBtn"><i class="fas fa-bolt"></i> 发射攻击</button>
+            <button id="hintBtn"><i class="fas fa-book"></i> 对战秘籍</button>
+            <button id="soundBtn"><i class="fas fa-volume-up"></i> 单词发音</button>
+            <button id="exitBtn"><i class="fas fa-sign-out-alt"></i> 退出挑战</button>
+            <input type="file" id="wordFileInput" class="file-input" accept=".xlsx">
+        </div>
+        
+        <div class="upload-container">
+            <div class="current-wordset" id="currentWordsetInfo">当前单词集: 默认单词集 (10个单词)</div>
+            <div class="upload-btn" id="uploadTrigger">
+                <i class="fas fa-cloud-upload-alt"></i> 选择单词XLSX文件
+            </div>
+            <div class="upload-info">上传自定义单词XLSX文件扩展您的词汇库</div>
+        </div>
+        
+        <!-- 成就区域 -->
+        <div class="achievement-area">
+            <div class="achievement-title">成就徽章</div>
+            <div class="achievements" id="achievementsContainer">
+                <div class="badge">
+                    <i class="fas fa-star"></i>
+                    <div class="badge-info">单词大师</div>
+                </div>
+                <div class="badge locked">
+                    <i class="fas fa-trophy"></i>
+                    <div class="badge-info">怪兽克星</div>
+                </div>
+                <div class="badge locked">
+                    <i class="fas fa-medal"></i>
+                    <div class="badge-info">拼写王者</div>
+                </div>
+                <div class="badge locked">
+                    <i class="fas fa-crown"></i>
+                    <div class="badge-info">守护之神</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    <div class="level-up" id="levelUpPopup">
+        <h2>升级啦！</h2>
+        <p>恭喜你升到了 <span id="newLevel">2</span> 级！</p>
+        <p>解锁了新能力和更强大的单词！</p>
+        <button id="continueBtn"><i class="fas fa-arrow-right"></i> 继续挑战</button>
+    </div>
+    
+    <!-- 对战秘籍弹窗 -->
+    <div class="word-info-popup" id="wordInfoPopup">
+        <div class="word-info-header">
+            <h2 id="wordTitle">单词秘籍</h2>
+        </div>
+        <div class="word-info-content">
+            <div class="word-info-row">
+                <span class="word-info-label">单词：</span>
+                <span class="word-info-value" id="wordInfoWord">-</span>
+            </div>
+            <div class="word-info-row">
+                <span class="word-info-label">音标：</span>
+                <span class="word-info-value" id="wordInfoPhonetic">-</span>
+            </div>
+            <div class="word-info-row">
+                <span class="word-info-label">翻译：</span>
+                <span class="word-info-value" id="wordInfoTranslation">-</span>
+            </div>
+            <div class="word-info-examples">
+                <h3>实用例句：</h3>
+                <div class="word-info-example" id="wordInfoExample1">-</div>
+                <div class="word-info-translation" id="wordInfoExample1Trans">-</div>
+                
+                <div class="word-info-example" id="wordInfoExample2">-</div>
+                <div class="word-info-translation" id="wordInfoExample2Trans">-</div>
+            </div>
+        </div>
+        <button class="word-info-close" id="closeWordInfoBtn"><i class="fas fa-times"></i> 关闭秘籍</button>
+    </div>
+    
+    <!-- 奖励弹窗 -->
+    <div class="reward-popup" id="rewardPopup">
+        <div class="reward-icon">🏆</div>
+        <div class="reward-title">挑战成功！</div>
+        <div class="reward-content">
+            <p>恭喜你完成了10个单词的挑战！</p>
+            <p>你获得了以下奖励：</p>
+        </div>
+        <div class="reward-stats">
+            <div class="reward-stat">
+                <div class="reward-label">金币</div>
+                <div class="reward-value" id="rewardGold">+50</div>
+            </div>
+            <div class="reward-stat">
+                <div class="reward-label">经验值</div>
+                <div class="reward-value" id="rewardExp">+100</div>
+            </div>
+            <div class="reward-stat">
+                <div class="reward-label">徽章</div>
+                <div class="reward-value">🥇</div>
+            </div>
+        </div>
+        <button class="word-info-close" id="closeRewardBtn"><i class="fas fa-check"></i> 继续游戏</button>
+    </div>
+    
+    <script>
+        // 游戏数据
+        const gameData = {
+            playerLevel: 1,
+            exp: 0,
+            expToNextLevel: 100,
+            monstersDefeated: 0,
+            currentWord: "",
+            wordShieldHP: 100,
+            maxHP: 100,
+            gameActive: false,
+            currentMonster: 0,
+            playerLives: 3,
+            monsterHealth: 0,
+            monsterAttackTimer: null,
+            monsterHasAttacked: false,
+            selectedLevel: "mix",
+            challengeWords: [],
+            currentChallengeIndex: 0,
+            challengeAttempts: 0,
+            gold: 0,
+            words: [],
+            wordsetName: "默认单词集",
+            selectedLetter: null
+        };
+        
+        // DOM元素
+        const wordShield = document.getElementById('wordShield');
+        const wordImage = document.getElementById('wordImage');
+        const letterContainer = document.getElementById('letterContainer');
+        const targetContainer = document.getElementById('targetContainer');
+        const startBtn = document.getElementById('startBtn');
+        const fireBtn = document.getElementById('fireBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const soundBtn = document.getElementById('soundBtn');
+        const exitBtn = document.getElementById('exitBtn');
+        const uploadTrigger = document.getElementById('uploadTrigger');
+        const wordFileInput = document.getElementById('wordFileInput');
+        const levelDisplay = document.getElementById('level');
+        const expDisplay = document.getElementById('exp');
+        const monstersDisplay = document.getElementById('monstersDefeated');
+        const livesDisplay = document.getElementById('lives');
+        const levelUpPopup = document.getElementById('levelUpPopup');
+        const overlay = document.getElementById('overlay');
+        const newLevelDisplay = document.getElementById('newLevel');
+        const continueBtn = document.getElementById('continueBtn');
+        const monsterCanvas = document.getElementById('monsterCanvas');
+        const monsterHealthBar = document.getElementById('monsterHealthBar');
+        const wordInfoPopup = document.getElementById('wordInfoPopup');
+        const wordInfoWord = document.getElementById('wordInfoWord');
+        const wordInfoPhonetic = document.getElementById('wordInfoPhonetic');
+        const wordInfoTranslation = document.getElementById('wordInfoTranslation');
+        const wordInfoExample1 = document.getElementById('wordInfoExample1');
+        const wordInfoExample2 = document.getElementById('wordInfoExample2');
+        const wordInfoExample1Trans = document.getElementById('wordInfoExample1Trans');
+        const wordInfoExample2Trans = document.getElementById('wordInfoExample2Trans');
+        const closeWordInfoBtn = document.getElementById('closeWordInfoBtn');
+        const wordTitle = document.getElementById('wordTitle');
+        const levelSelector = document.getElementById('levelSelector');
+        const challengeProgress = document.getElementById('challengeProgress');
+        const goldDisplay = document.getElementById('gold');
+        const rewardPopup = document.getElementById('rewardPopup');
+        const rewardGold = document.getElementById('rewardGold');
+        const rewardExp = document.getElementById('rewardExp');
+        const closeRewardBtn = document.getElementById('closeRewardBtn');
+        const currentWordsetInfo = document.getElementById('currentWordsetInfo');
+        const monsterNameLabel = document.getElementById('monsterName');
+        
+        // 处理图片加载失败
+        function handleImageError(img) {
+            const wordImageContainer = img.parentNode;
+            const currentWord = gameData.challengeWords[gameData.currentChallengeIndex];
+            
+            // 创建回退内容
+            const fallback = document.createElement('div');
+            fallback.className = 'image-fallback';
+            fallback.innerHTML = `
+                <i class="fas fa-image"></i>
+                <span>${currentWord.translation}</span>
+            `;
+            
+            // 隐藏图片并显示回退内容
+            img.style.display = 'none';
+            wordImageContainer.appendChild(fallback);
+        }
+        
+        // 怪兽类
+        class Monster {
+            constructor(canvas, type) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.type = type || Math.floor(Math.random() * 3);
+                this.color = this.getRandomColor();
+                this.width = canvas.width;
+                this.height = canvas.height;
+                this.x = this.width / 2;
+                this.y = this.height / 2;
+                this.size = Math.min(this.width, this.height) * 0.4;
+                this.eyeSize = this.size * 0.2;
+                this.mouthSize = this.size * 0.15;
+                this.animationState = 'idle';
+                this.animationTimer = 0;
+                this.blinkTimer = 0;
+                this.blinkState = false;
+                this.blinkDuration = 10;
+                this.animationSpeed = 0.05;
+                this.attackState = false;
+                this.attackTimer = 0;
+                this.attackDuration = 30;
+                this.name = this.getRandomName();
+            }
+            
+            getRandomColor() {
+                const colors = [
+                    '#FF6B6B', // 红色
+                    '#4ECDC4', // 青色
+                    '#FFD166', // 黄色
+                    '#A855F7', // 紫色
+                    '#06B6D4'  // 蓝色
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            getRandomName() {
+                const names = ['字母吞噬者', '单词破坏者', '拼写怪兽', '学习干扰兽', '词汇破坏王'];
+                return names[Math.floor(Math.random() * names.length)];
+            }
+            
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                // 绘制身体
+                this.ctx.fillStyle = this.color;
+                
+                switch(this.type) {
+                    case 0: // 圆形怪兽
+                        this.ctx.beginPath();
+                        this.ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        break;
+                    case 1: // 方形怪兽
+                        this.ctx.fillRect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
+                        break;
+                    case 2: // 三角形怪兽
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.x, this.y - this.size);
+                        this.ctx.lineTo(this.x - this.size, this.y + this.size);
+                        this.ctx.lineTo(this.x + this.size, this.y + this.size);
+                        this.ctx.closePath();
+                        this.ctx.fill();
+                        break;
+                }
+                
+                // 绘制眼睛
+                this.ctx.fillStyle = 'white';
+                const eyeOffset = this.size * 0.3;
+                
+                // 左眼
+                this.ctx.beginPath();
+                this.ctx.arc(this.x - eyeOffset, this.y - this.size * 0.1, this.eyeSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右眼
+                this.ctx.beginPath();
+                this.ctx.arc(this.x + eyeOffset, this.y - this.size * 0.1, this.eyeSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 瞳孔
+                this.ctx.fillStyle = 'black';
+                const pupilOffset = this.size * 0.05;
+                const pupilSize = this.eyeSize * 0.5;
+                
+                // 左瞳孔
+                this.ctx.beginPath();
+                this.ctx.arc(this.x - eyeOffset - pupilOffset, this.y - this.size * 0.1, pupilSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右瞳孔
+                this.ctx.beginPath();
+                this.ctx.arc(this.x + eyeOffset - pupilOffset, this.y - this.size * 0.1, pupilSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 眨眼效果
+                if (this.blinkState) {
+                    this.ctx.fillStyle = this.color;
+                    this.ctx.fillRect(this.x - eyeOffset - this.eyeSize, this.y - this.size * 0.1 - this.eyeSize/2, 
+                                    this.eyeSize * 2, this.eyeSize/2);
+                    this.ctx.fillRect(this.x + eyeOffset - this.eyeSize, this.y - this.size * 0.1 - this.eyeSize/2, 
+                                    this.eyeSize * 2, this.eyeSize/2);
+                }
+                
+                // 绘制嘴巴
+                this.ctx.fillStyle = 'black';
+                this.ctx.beginPath();
+                
+                if (this.attackState) {
+                    // 攻击状态的嘴巴（张开）
+                    this.ctx.arc(this.x, this.y + this.size * 0.2, this.mouthSize * 1.5, 0, Math.PI);
+                } else {
+                    // 普通状态的嘴巴（微笑）
+                    this.ctx.arc(this.x, this.y + this.size * 0.2, this.mouthSize, 0, Math.PI);
+                }
+                
+                this.ctx.stroke();
+                
+                // 绘制牙齿（攻击状态）
+                if (this.attackState) {
+                    this.ctx.fillStyle = 'white';
+                    const toothWidth = this.mouthSize * 0.2;
+                    const toothHeight = this.mouthSize * 0.4;
+                    
+                    // 左上牙齿
+                    this.ctx.fillRect(this.x - toothWidth, this.y + this.size * 0.2 - toothHeight/2, toothWidth, toothHeight);
+                    
+                    // 右上牙齿
+                    this.ctx.fillRect(this.x, this.y + this.size * 0.2 - toothHeight/2, toothWidth, toothHeight);
+                }
+            }
+            
+            update() {
+                // 更新眨眼计时器
+                this.blinkTimer++;
+                if (this.blinkTimer > 100) {
+                    this.blinkState = true;
+                    if (this.blinkTimer > 100 + this.blinkDuration) {
+                        this.blinkState = false;
+                        this.blinkTimer = 0;
+                    }
+                }
+                
+                // 更新攻击状态计时器
+                if (this.attackState) {
+                    this.attackTimer++;
+                    if (this.attackTimer > this.attackDuration) {
+                        this.attackState = false;
+                        this.attackTimer = 0;
+                    }
+                }
+                
+                // 根据动画状态更新位置
+                switch(this.animationState) {
+                    case 'idle':
+                        // 空闲状态不浮动（浮动动画由CSS处理）
+                        break;
+                    case 'attack':
+                        // 攻击动画
+                        this.y = this.height / 2 + Math.sin(Date.now() * this.animationSpeed * 3) * 10;
+                        break;
+                }
+                
+                this.draw();
+            }
+            
+            attack() {
+                this.attackState = true;
+                this.attackTimer = 0;
+                this.animationState = 'attack';
+                
+                // 2秒后回到空闲状态
+                setTimeout(() => {
+                    this.animationState = 'idle';
+                }, 2000);
+            }
+        }
+        
+        let monsterInstance = null;
+        
+        // 从XLSX文件加载单词数据
+        async function loadWords() {
+            try {
+                gameData.words = getDefaultWords();
+                gameData.wordsetName = "默认单词集";
+                updateWordsetInfo();
+                console.log('使用默认单词数据:', gameData.words.length, '个单词');
+            } catch (error) {
+                console.error('加载单词数据失败:', error);
+                gameData.words = getDefaultWords();
+                gameData.wordsetName = "默认单词集";
+                updateWordsetInfo();
+            }
+        }
+        
+        // 获取默认单词
+        function getDefaultWords() {
+            return [
+                {
+                    word: "APPLE",
+                    image: "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8ZnJ1aXQsYXBwbGV8fHx8fHwxNjI5ODQ3MjU4&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/ˈæp.əl/",
+                    translation: "苹果",
+                    examples: [
+                        "I eat an apple every day for breakfast.",
+                        "The teacher placed a shiny red apple on her desk."
+                    ],
+                    translations: [
+                        "我每天早餐吃一个苹果。",
+                        "老师在桌子上放了一个闪亮的红苹果。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "BEACH",
+                    image: "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8YmVhY2h8fHx8fHwxNjI5ODQ3MjYy&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/biːtʃ/",
+                    translation: "海滩",
+                    examples: [
+                        "Children built sandcastles on the sunny beach.",
+                        "We collected beautiful seashells along the beach."
+                    ],
+                    translations: [
+                        "孩子们在阳光明媚的海滩上堆沙堡。",
+                        "我们沿着海滩收集了美丽的贝壳。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "CAT",
+                    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8Y2F0fHx8fHx8MTYyOTg0NzI3Mg&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/kæt/",
+                    translation: "猫",
+                    examples: [
+                        "The cat curled up on the sofa and fell asleep.",
+                        "My neighbor has a black cat with green eyes."
+                    ],
+                    translations: [
+                        "猫蜷缩在沙发上睡着了。",
+                        "我的邻居有一只绿眼睛的黑猫。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "DOG",
+                    image: "https://images.unsplash.com/photo-1517423447168-cb804aafa6e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8ZG9nfHx8fHx8MTYyOTg0NzI3OA&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/dɒɡ/",
+                    translation: "狗",
+                    examples: [
+                        "The dog wagged its tail happily when I came home.",
+                        "We take our dog for a walk every evening."
+                    ],
+                    translations: [
+                        "当我回家时，狗高兴地摇着尾巴。",
+                        "我们每天晚上都带狗去散步。"
+                    ],
+                    level: 1
+                },
+                {
+                    word: "ELEPHANT",
+                    image: "https://images.unsplash.com/photo-1549468057-5b7fa1a41d7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8ZWxlcGhhbnR8fHx8fHwxNjI5ODQ3Mjg0&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/ˈel.ɪ.fənt/",
+                    translation: "大象",
+                    examples: [
+                        "The elephant used its trunk to spray water on itself.",
+                        "We saw a family of elephants at the wildlife park."
+                    ],
+                    translations: [
+                        "大象用它的鼻子往自己身上喷水。",
+                        "我们在野生动物园看到了一群大象。"
+                    ],
+                    level: 2
+                },
+                {
+                    word: "FLOWER",
+                    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8Zmxvd2VyfHx8fHx8MTYyOTg0NzI5MA&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/ˈflaʊ.ər/",
+                    translation: "花",
+                    examples: [
+                        "She planted colorful flowers in her garden.",
+                        "He gave her a bouquet of roses for her birthday."
+                    ],
+                    translations: [
+                        "她在花园里种了五颜六色的花。",
+                        "他在她生日时送给她一束玫瑰。"
+                    ],
+                    level: 2
+                },
+                {
+                    word: "GUITAR",
+                    image: "https://images.unsplash.com/photo-1541689592655-f5f52825a3b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8Z3VpdGFyfHx8fHx8MTYyOTg0NzI5Ng&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/ɡɪˈtɑːr/",
+                    translation: "吉他",
+                    examples: [
+                        "He plays the guitar in a rock band.",
+                        "I'm learning to play the guitar."
+                    ],
+                    translations: [
+                        "他在一个摇滚乐队弹吉他。",
+                        "我正在学习弹吉他。"
+                    ],
+                    level: 3
+                },
+                {
+                    word: "HOUSE",
+                    image: "https://images.unsplash.com/photo-1575517111839-3a3843ee7f5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8aG91c2V8fHx8fHwxNjI5ODQ3MzAy&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/haʊs/",
+                    translation: "房子",
+                    examples: [
+                        "They bought a new house near the lake.",
+                        "Our house has three bedrooms and a large kitchen."
+                    ],
+                    translations: [
+                        "他们在湖边买了一栋新房子。",
+                        "我们的房子有三间卧室和一个大厨房。"
+                    ],
+                    level: 3
+                },
+                {
+                    word: "ISLAND",
+                    image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8aXNsYW5kfHx8fHx8MTYyOTg0NzMwOA&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/ˈaɪ.lənd/",
+                    translation: "岛屿",
+                    examples: [
+                        "We spent our vacation on a tropical island.",
+                        "The small island has beautiful beaches and clear water."
+                    ],
+                    translations: [
+                        "我们在一个热带岛屿上度过了假期。",
+                        "这个小岛有美丽的海滩和清澈的海水。"
+                    ],
+                    level: 4
+                },
+                {
+                    word: "JUNGLE",
+                    image: "https://images.unsplash.com/photo-1475855581690-80accde3ae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8anVuZ2xlfHx8fHx8MTYyOTg0NzMxNA&ixlib=rb-1.2.1&q=80&w=400",
+                    audio: "https://www.soundjay.com/buttons/sounds/button-09.mp3",
+                    phonetic: "/ˈdʒʌŋ.ɡəl/",
+                    translation: "丛林",
+                    examples: [
+                        "The explorers trekked through the dense jungle.",
+                        "Many exotic animals live in the jungle."
+                    ],
+                    translations: [
+                        "探险家们徒步穿越了茂密的丛林。",
+                        "许多异国动物生活在丛林中。"
+                    ],
+                    level: 5
+                }
+            ];
+        }
+        
+        // 更新单词集信息显示
+        function updateWordsetInfo() {
+            currentWordsetInfo.textContent = `当前单词集: ${gameData.wordsetName} (${gameData.words.length}个单词)`;
+        }
+        
+        // 保存游戏数据到localStorage
+        function saveGameData() {
+            const saveData = {
+                playerLevel: gameData.playerLevel,
+                exp: gameData.exp,
+                expToNextLevel: gameData.expToNextLevel,
+                monstersDefeated: gameData.monstersDefeated,
+                gold: gameData.gold
+            };
+            localStorage.setItem('wordGuardianData', JSON.stringify(saveData));
+            console.log('游戏数据已保存');
+        }
+        
+        // 从localStorage加载游戏数据
+        function loadGameData() {
+            const savedData = localStorage.getItem('wordGuardianData');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                gameData.playerLevel = parsedData.playerLevel || 1;
+                gameData.exp = parsedData.exp || 0;
+                gameData.expToNextLevel = parsedData.expToNextLevel || 100;
+                gameData.monstersDefeated = parsedData.monstersDefeated || 0;
+                gameData.gold = parsedData.gold || 0;
+                console.log('游戏数据已加载');
+            } else {
+                console.log('没有找到保存的游戏数据，使用默认值');
+            }
+        }
+        
+        // 退出当前挑战
+        function exitChallenge() {
+            if (confirm('确定要退出本次挑战吗？当前进度将会丢失！')) {
+                clearTimeout(gameData.monsterAttackTimer);
+                resetGameState();
+                gameData.challengeWords = [];
+                gameData.currentChallengeIndex = 0;
+                challengeProgress.innerHTML = '';
+                
+                wordShield.textContent = "挑战已退出";
+                wordShield.style.backgroundColor = 'rgba(96, 125, 139, 0.3)';
+            }
+        }
+        
+        // 初始化游戏
+        async function initGame() {
+            await loadWords();
+            loadGameData();
+            updateStats();
+            
+            monsterCanvas.width = 140;
+            monsterCanvas.height = 140;
+            monsterInstance = new Monster(monsterCanvas);
+            animateMonster();
+            
+            startBtn.addEventListener('click', startChallenge);
+            fireBtn.addEventListener('click', fireAttack);
+            hintBtn.addEventListener('click', showWordInfo);
+            soundBtn.addEventListener('click', speakWord);
+            exitBtn.addEventListener('click', exitChallenge);
+            continueBtn.addEventListener('click', hideLevelUpPopup);
+            closeWordInfoBtn.addEventListener('click', hideWordInfoPopup);
+            closeRewardBtn.addEventListener('click', hideRewardPopup);
+            
+            uploadTrigger.addEventListener('click', () => {
+                wordFileInput.click();
+            });
+            
+            wordFileInput.addEventListener('change', handleFileUpload);
+            
+            const levelBtns = levelSelector.querySelectorAll('.level-btn');
+            levelBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    levelBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    gameData.selectedLevel = btn.dataset.level;
+                });
+            });
+        }
+        
+        // 动画循环
+        function animateMonster() {
+            if (monsterInstance) {
+                monsterInstance.update();
+            }
+            requestAnimationFrame(animateMonster);
+        }
+        
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // 获取第一个工作表
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // 将工作表转换为JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    // 映射数据到需要的格式
+                    const mappedData = jsonData.map(row => {
+                        // 确保列名匹配（Excel列名）
+                        return {
+                            word: row['word'] || row['单词'] || '',
+                            image: row['image'] || row['图片'] || '',
+                            audio: row['audio'] || row['发音'] || '',
+                            phonetic: row['phonetic'] || row['音标'] || '',
+                            translation: row['translation'] || row['翻译'] || '',
+                            examples: [
+                                row['example1'] || row['例句1'] || '',
+                                row['example2'] || row['例句2'] || ''
+                            ].filter(example => example),
+                            translations: [
+                                row['translation1'] || row['翻译1'] || '',
+                                row['translation2'] || row['翻译2'] || ''
+                            ].filter(trans => trans),
+                            level: row['level'] || row['级别'] || 1
+                        };
+                    });
+                    
+                    if (mappedData.length === 0) {
+                        throw new Error('文件内容为空或格式不正确');
+                    }
+                    
+                    const wordsetName = file.name.replace('.xlsx', '');
+                    const customWordset = {
+                        words: mappedData,
+                        wordsetName: wordsetName
+                    };
+                    
+                    localStorage.setItem('customWordset', JSON.stringify(customWordset));
+                    
+                    gameData.words = mappedData;
+                    gameData.wordsetName = wordsetName;
+                    updateWordsetInfo();
+                    
+                    alert(`单词上传成功！共加载 ${mappedData.length} 个单词。`);
+                    resetGameState();
+                    
+                } catch (error) {
+                    alert('解析XLSX文件失败: ' + error.message);
+                    console.error('文件上传错误:', error);
+                }
+            };
+            reader.onerror = function() {
+                alert('读取文件失败');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 重置游戏状态
+        function resetGameState() {
+            gameData.gameActive = false;
+            letterContainer.innerHTML = '';
+            targetContainer.innerHTML = '';
+            wordShield.textContent = '准备就绪';
+            wordShield.style.backgroundColor = '';
+            fireBtn.classList.remove('active');
+            gameData.selectedLetter = null;
+        }
+        
+        // 显示单词信息弹窗
+        function showWordInfo() {
+            if (!gameData.gameActive || gameData.currentChallengeIndex >= gameData.challengeWords.length) {
+                alert("请先开始挑战！");
+                return;
+            }
+            
+            try {
+                const currentWordData = gameData.challengeWords[gameData.currentChallengeIndex];
+                if (!currentWordData) return;
+                
+                const displayWord = currentWordData.word;
+                wordTitle.textContent = `单词秘籍: ${displayWord}`;
+                wordInfoWord.textContent = displayWord;
+                wordInfoPhonetic.textContent = currentWordData.phonetic || "/未提供/";
+                wordInfoTranslation.textContent = currentWordData.translation;
+                
+                if (currentWordData.examples && currentWordData.examples.length > 0) {
+                    wordInfoExample1.textContent = currentWordData.examples[0];
+                    wordInfoExample1Trans.textContent = currentWordData.translations?.[0] || "未提供翻译";
+                    
+                    if (currentWordData.examples.length > 1) {
+                        wordInfoExample2.textContent = currentWordData.examples[1];
+                        wordInfoExample2Trans.textContent = currentWordData.translations?.[1] || "未提供翻译";
+                    } else {
+                        wordInfoExample2.textContent = "未提供更多例句";
+                        wordInfoExample2Trans.textContent = "";
+                    }
+                } else {
+                    wordInfoExample1.textContent = "未提供例句";
+                    wordInfoExample1Trans.textContent = "";
+                    wordInfoExample2.textContent = "";
+                    wordInfoExample2Trans.textContent = "";
+                }
+                
+                wordInfoPopup.style.display = 'block';
+                overlay.style.display = 'block';
+            } catch (error) {
+                console.error("显示单词信息失败:", error);
+                alert("无法获取单词信息，请重试！");
+            }
+        }
+        
+        // 隐藏单词信息弹窗
+        function hideWordInfoPopup() {
+            wordInfoPopup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+        
+        // 隐藏奖励弹窗
+        function hideRewardPopup() {
+            rewardPopup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+        
+        // 开始新挑战
+        function startChallenge() {
+            if (gameData.gameActive) return;
+            
+            if (gameData.words.length < 10) {
+                alert(`当前单词集只有 ${gameData.words.length} 个单词，至少需要 10 个单词才能开始挑战！`);
+                return;
+            }
+            
+            gameData.challengeAttempts = 0;
+            gameData.currentChallengeIndex = 0;
+            gameData.challengeWords = [];
+            
+            if (gameData.selectedLevel === "mix") {
+                const shuffled = [...gameData.words].sort(() => 0.5 - Math.random());
+                gameData.challengeWords = shuffled.slice(0, 10);
+            } else {
+                const level = parseInt(gameData.selectedLevel);
+                const levelWords = gameData.words.filter(word => word.level === level);
+                const shuffled = [...levelWords].sort(() => 0.5 - Math.random());
+                gameData.challengeWords = shuffled.slice(0, Math.min(10, shuffled.length));
+            }
+            
+            createChallengeProgress();
+            startNextWord();
+        }
+        
+        // 创建挑战进度指示器
+        function createChallengeProgress() {
+            challengeProgress.innerHTML = '';
+            for (let i = 0; i < gameData.challengeWords.length; i++) {
+                const progressItem = document.createElement('div');
+                progressItem.className = 'progress-item';
+                progressItem.textContent = i + 1;
+                if (i === 0) {
+                    progressItem.classList.add('active');
+                }
+                challengeProgress.appendChild(progressItem);
+            }
+        }
+        
+        // 更新挑战进度
+        function updateChallengeProgress(success) {
+            const progressItems = challengeProgress.querySelectorAll('.progress-item');
+            const currentItem = progressItems[gameData.currentChallengeIndex];
+            
+            currentItem.classList.remove('active');
+            if (success) {
+                currentItem.classList.add('completed');
+            } else {
+                currentItem.classList.add('failed');
+            }
+            
+            if (gameData.currentChallengeIndex < gameData.challengeWords.length - 1) {
+                progressItems[gameData.currentChallengeIndex + 1].classList.add('active');
+            }
+        }
+        
+        // 开始下一个单词挑战
+        function startNextWord() {
+            if (gameData.currentChallengeIndex >= gameData.challengeWords.length) {
+                challengeSuccess();
+                return;
+            }
+            
+            gameData.gameActive = true;
+            gameData.playerLives = 3;
+            gameData.monsterHasAttacked = false;
+            gameData.selectedLetter = null;
+            updateLives();
+            fireBtn.classList.remove('active');
+            
+            letterContainer.innerHTML = '';
+            targetContainer.innerHTML = '';
+            targetContainer.innerHTML = '<div class="mobile-drag-hint">点击字母然后点击此处放置</div>';
+            monsterHealthBar.innerHTML = '';
+            
+            const wordData = gameData.challengeWords[gameData.currentChallengeIndex];
+            gameData.currentWord = wordData.word;
+            
+            // 重置图片显示
+            const wordImageContainer = wordImage.parentNode;
+            const existingFallback = wordImageContainer.querySelector('.image-fallback');
+            if (existingFallback) {
+                existingFallback.remove();
+            }
+            wordImage.src = wordData.image || '';
+            wordImage.alt = wordData.word;
+            wordImage.style.display = 'block';
+            
+            monsterInstance = new Monster(monsterCanvas);
+            monsterNameLabel.textContent = monsterInstance.name;
+            
+            gameData.monsterHealth = gameData.currentWord.length;
+            createMonsterHealthBar();
+            
+            wordShield.textContent = gameData.currentWord.toLowerCase();
+            
+            setTimeout(speakWord, 500);
+            
+            for (let i = 0; i < gameData.currentWord.length; i++) {
+                const target = document.createElement('div');
+                target.className = 'target';
+                target.dataset.index = i;
+                target.dataset.expected = gameData.currentWord[i];
+                target.addEventListener('click', handleTargetClick);
+                targetContainer.appendChild(target);
+            }
+            
+            clearTimeout(gameData.monsterAttackTimer);
+            gameData.monsterAttackTimer = setTimeout(() => {
+                monsterAttack();
+                scatterLetters();
+            }, 10000);
+        }
+        
+        // 怪物攻击
+        function monsterAttack() {
+            if (!gameData.gameActive || gameData.monsterHasAttacked) return;
+            
+            gameData.monsterHasAttacked = true;
+            
+            if (monsterInstance) {
+                monsterInstance.attack();
+            }
+            
+            const laser = document.createElement('div');
+            laser.className = 'monster-laser';
+            
+            const monsterRect = monsterCanvas.getBoundingClientRect();
+            const shieldRect = wordShield.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+            
+            const startX = monsterRect.left - containerRect.left + monsterRect.width/2;
+            const startY = monsterRect.top - containerRect.top + monsterRect.height/2;
+            const endX = shieldRect.left - containerRect.left + shieldRect.width/2;
+            const endY = shieldRect.top - containerRect.top + shieldRect.height/2;
+            
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            laser.style.width = '0';
+            laser.style.left = `${startX}px`;
+            laser.style.top = `${startY}px`;
+            laser.style.transform = `rotate(${angle}deg)`;
+            laser.style.opacity = '0';
+            
+            document.querySelector('.game-container').appendChild(laser);
+            
+            setTimeout(() => {
+                laser.style.transition = 'width 0.5s ease, opacity 0.5s ease';
+                laser.style.width = `${distance}px`;
+                laser.style.opacity = '1';
+            }, 100);
+            
+            setTimeout(() => {
+                wordShield.classList.add('shake');
+                
+                setTimeout(() => {
+                    if (laser.parentNode) {
+                        laser.parentNode.removeChild(laser);
+                    }
+                    wordShield.classList.remove('shake');
+                }, 500);
+            }, 600);
+        }
+        
+        // 创建怪兽血条
+        function createMonsterHealthBar() {
+            monsterHealthBar.innerHTML = '';
+            for (let i = 0; i < gameData.monsterHealth; i++) {
+                const segment = document.createElement('div');
+                segment.className = 'health-segment';
+                monsterHealthBar.appendChild(segment);
+            }
+        }
+        
+        // 更新怪兽血条
+        function updateMonsterHealthBar() {
+            const segments = document.querySelectorAll('.health-segment');
+            segments.forEach((segment, index) => {
+                if (index >= gameData.monsterHealth) {
+                    segment.classList.add('lost');
+                }
+            });
+        }
+        
+        // 打散字母
+        function scatterLetters() {
+            wordShield.textContent = '';
+            wordShield.style.backgroundColor = 'rgba(255, 107, 107, 0.3)';
+            
+            createLaserEffect();
+            
+            setTimeout(() => {
+                const letters = gameData.currentWord.split('');
+                
+                const containerWidth = letterContainer.offsetWidth;
+                const containerHeight = letterContainer.offsetHeight;
+                
+                const targetRect = targetContainer.getBoundingClientRect();
+                const containerRect = letterContainer.getBoundingClientRect();
+                const targetTop = targetRect.top - containerRect.top;
+                
+                const safeZoneHeight = Math.max(containerHeight - targetTop - 20, 0);
+                const minY = containerHeight - safeZoneHeight;
+                
+                const positions = [];
+                for (let i = 0; i < letters.length; i++) {
+                    positions.push(i);
+                }
+                shuffleArray(positions);
+                
+                positions.forEach((posIndex, i) => {
+                    const letter = letters[i];
+                    const letterElement = document.createElement('div');
+                    letterElement.className = 'letter';
+                    letterElement.textContent = letter.toLowerCase();
+                    letterElement.dataset.letter = letter;
+                    letterElement.dataset.index = i;
+                    letterElement.dataset.id = `letter-${i}-${Date.now()}`;
+                    
+                    const angle = Math.random() * 360;
+                    const distance = 50 + Math.random() * 150;
+                    const x = Math.cos(angle * Math.PI / 180) * distance;
+                    let y = Math.sin(angle * Math.PI / 180) * distance;
+                    
+                    if (y > -minY) {
+                        y = -Math.min(minY, Math.abs(y)) * Math.sign(y);
+                    }
+                    
+                    letterElement.style.setProperty('--tx', `${x}px`);
+                    letterElement.style.setProperty('--ty', `${y}px`);
+                    letterElement.style.setProperty('--rot', `${Math.random() * 60 - 30}deg`);
+                    
+                    letterElement.style.left = `calc(50% - 30px)`;
+                    letterElement.style.top = `calc(50% - 30px)`;
+                    
+                    letterElement.addEventListener('click', handleLetterClick);
+                    
+                    setTimeout(() => {
+                        letterElement.classList.add('scatter');
+                    }, 10);
+                    
+                    letterContainer.appendChild(letterElement);
+                });
+                
+                createScatterParticles();
+            }, 1000);
+        }
+        
+        // 字母点击处理
+        function handleLetterClick(e) {
+            const letterElement = e.target;
+            
+            const allLetters = document.querySelectorAll('.letter');
+            allLetters.forEach(letter => {
+                if (letter !== letterElement) {
+                    letter.classList.remove('selected');
+                }
+            });
+            
+            letterElement.classList.toggle('selected');
+            
+            if (letterElement.classList.contains('selected')) {
+                gameData.selectedLetter = letterElement;
+            } else {
+                gameData.selectedLetter = null;
+            }
+        }
+        
+        // 目标区域点击事件
+        function handleTargetClick(e) {
+            const target = e.target;
+            
+            if (target.classList.contains('target') && !target.textContent) {
+                if (gameData.selectedLetter) {
+                    target.textContent = gameData.selectedLetter.textContent;
+                    target.classList.add('filled');
+                    target.dataset.letter = gameData.selectedLetter.dataset.letter;
+                    target.dataset.letterId = gameData.selectedLetter.dataset.id;
+                    
+                    gameData.selectedLetter.remove();
+                    gameData.selectedLetter = null;
+                    
+                    createParticles(target);
+                    
+                    const hitEffect = document.createElement('div');
+                    hitEffect.className = 'hit-effect';
+                    target.appendChild(hitEffect);
+                    setTimeout(() => {
+                        hitEffect.classList.add('hit-animation');
+                    }, 10);
+                    
+                    setTimeout(() => {
+                        if (hitEffect.parentNode) {
+                            hitEffect.parentNode.removeChild(hitEffect);
+                        }
+                    }, 600);
+                    
+                    checkFireButtonState();
+                }
+            }
+            else if (target.classList.contains('target') && target.textContent) {
+                const letter = target.textContent;
+                const letterId = target.dataset.letterId;
+                createDraggableLetter(letter, target.dataset.index, letterId);
+                
+                target.textContent = '';
+                target.classList.remove('filled');
+                target.dataset.letter = '';
+                target.dataset.letterId = '';
+                
+                checkFireButtonState();
+                createParticles(target);
+            }
+        }
+        
+        // 创建打散字母时的粒子效果
+        function createScatterParticles() {
+            const containerRect = letterContainer.getBoundingClientRect();
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const x = Math.random() * containerRect.width;
+                const y = Math.random() * containerRect.height;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 100;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--p-tx', `${tx}px`);
+                particle.style.setProperty('--p-ty', `${ty}px`);
+                
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                
+                const colors = ['#ffd166', '#ff6b6b', '#4ecdc4', '#a855f7', '#06b6d4'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                letterContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1500);
+            }
+        }
+        
+        // 创建可拖拽字母
+        function createDraggableLetter(letter, index, letterId) {
+            const letterElement = document.createElement('div');
+            letterElement.className = 'letter';
+            letterElement.textContent = letter.toLowerCase();
+            letterElement.dataset.letter = letter.toUpperCase();
+            letterElement.dataset.index = index;
+            letterElement.dataset.id = letterId || `letter-${index}-${Date.now()}`;
+            
+            const containerRect = letterContainer.getBoundingClientRect();
+            const x = Math.random() * (containerRect.width - 60);
+            const y = Math.random() * (containerRect.height - 60);
+            letterElement.style.left = `${x}px`;
+            letterElement.style.top = `${y}px`;
+            
+            letterElement.addEventListener('click', handleLetterClick);
+            
+            letterContainer.appendChild(letterElement);
+            return letterElement;
+        }
+        
+        // 创建激光效果
+        function createLaserEffect() {
+            const laser = document.createElement('div');
+            laser.className = 'laser';
+            laser.style.width = '0';
+            laser.style.left = '50%';
+            laser.style.top = '170px';
+            
+            document.querySelector('.game-container').appendChild(laser);
+            
+            setTimeout(() => {
+                laser.style.width = '100%';
+                laser.style.left = '0';
+                laser.style.transition = 'width 0.5s ease, left 0.5s ease';
+            }, 10);
+            
+            setTimeout(() => {
+                document.querySelector('.game-container').removeChild(laser);
+            }, 600);
+        }
+        
+        // 创建粒子效果
+        function createParticles(element) {
+            const rect = element.getBoundingClientRect();
+            
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 100;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--p-tx', `${tx}px`);
+                particle.style.setProperty('--p-ty', `${ty}px`);
+                
+                particle.style.left = (rect.left + rect.width/2) + 'px';
+                particle.style.top = (rect.top + rect.height/2) + 'px';
+                
+                const colors = ['#ffd166', '#ff6b6b', '#4ecdc4', '#a855f7', '#06b6d4'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1500);
+            }
+        }
+        
+        // 检查发射按钮状态
+        function checkFireButtonState() {
+            const targets = document.querySelectorAll('.target');
+            const filledTargets = Array.from(targets).filter(t => t.textContent);
+            
+            if (filledTargets.length === targets.length) {
+                fireBtn.classList.add('active');
+                fireBtn.style.boxShadow = '0 0 20px rgba(78, 205, 196, 0.8)';
+            } else {
+                fireBtn.classList.remove('active');
+                fireBtn.style.boxShadow = '';
+            }
+        }
+        
+        // 发射攻击
+        function fireAttack() {
+            if (!gameData.gameActive || !fireBtn.classList.contains('active')) return;
+            
+            const targets = document.querySelectorAll('.target');
+            let completedWord = '';
+            
+            targets.forEach(target => {
+                if (target.textContent) {
+                    completedWord += target.dataset.letter;
+                }
+            });
+            
+            if (completedWord.length !== gameData.currentWord.length) {
+                wordShield.classList.add('shake');
+                setTimeout(() => {
+                    wordShield.classList.remove('shake');
+                }, 500);
+                return;
+            }
+            
+            attackWithLetters();
+        }
+        
+        // 逐个发射字母攻击
+        function attackWithLetters() {
+            const targets = document.querySelectorAll('.target');
+            const letters = Array.from(targets).map(target => ({
+                element: target,
+                letter: target.dataset.letter,
+                index: parseInt(target.dataset.index),
+                isCorrect: target.dataset.letter === gameData.currentWord[parseInt(target.dataset.index)].toUpperCase()
+            }));
+            
+            processLetterAttack(letters, 0);
+        }
+        
+        // 逐个处理字母攻击
+        function processLetterAttack(letters, index) {
+            if (index >= letters.length) {
+                setTimeout(checkAttackResult, 500);
+                return;
+            }
+            
+            const letterData = letters[index];
+            
+            const attackElement = document.createElement('div');
+            attackElement.className = 'letter attack-letter';
+            attackElement.textContent = letterData.letter.toLowerCase();
+            attackElement.style.position = 'absolute';
+            attackElement.style.left = `${letterData.element.offsetLeft}px`;
+            attackElement.style.top = `${letterData.element.offsetTop}px`;
+            attackElement.style.background = letterData.isCorrect ? 
+                'linear-gradient(145deg, #4ecdc4, #1a9e94)' : 
+                'linear-gradient(145deg, #ff6b6b, #d84a4a)';
+            
+            const monsterRect = monsterCanvas.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-area').getBoundingClientRect();
+            const targetRect = letterData.element.getBoundingClientRect();
+            
+            const tx = (monsterRect.left - containerRect.left + monsterRect.width/2) - (targetRect.left - containerRect.left + targetRect.width/2);
+            const ty = (monsterRect.top - containerRect.top + monsterRect.height/2) - (targetRect.top - containerRect.top + targetRect.height/2);
+            
+            attackElement.style.setProperty('--tx', `${tx}px`);
+            attackElement.style.setProperty('--ty', `${ty}px`);
+            
+            document.querySelector('.game-area').appendChild(attackElement);
+            
+            letterData.element.textContent = '';
+            letterData.element.classList.remove('filled');
+            letterData.element.style.background = '';
+            letterData.element.style.border = '';
+            letterData.element.style.boxShadow = '';
+            
+            attackElement.classList.add('attack-letter');
+            
+            setTimeout(() => {
+                attackElement.remove();
+                
+                if (letterData.isCorrect) {
+                    gameData.monsterHealth--;
+                    updateMonsterHealthBar();
+                    
+                    showDamage(monsterCanvas, "💥", "#ffd166");
+                    
+                    const hitEffect = document.createElement('div');
+                    hitEffect.className = 'hit-effect';
+                    document.querySelector('.monster-area').appendChild(hitEffect);
+                    hitEffect.style.left = `${monsterRect.left - containerRect.left}px`;
+                    hitEffect.style.top = `${monsterRect.top - containerRect.top}px`;
+                    setTimeout(() => {
+                        hitEffect.classList.add('hit-animation');
+                    }, 10);
+                    
+                    setTimeout(() => {
+                        if (hitEffect.parentNode) {
+                            hitEffect.parentNode.removeChild(hitEffect);
+                        }
+                    }, 600);
+                } else {
+                    showDamage(monsterCanvas, "❌", "#ff6b6b");
+                }
+                
+                setTimeout(() => processLetterAttack(letters, index+1), 150);
+            }, 500);
+        }
+        
+        // 检查攻击结果
+        function checkAttackResult() {
+            if (gameData.monsterHealth <= 0) {
+                defeatMonster();
+            } else {
+                gameData.playerLives--;
+                updateLives();
+                
+                if (gameData.playerLives <= 0) {
+                    gameOver();
+                } else {
+                    showDamage(monsterCanvas, "回血 +满", "#4ecdc4");
+                    gameData.monsterHealth = gameData.currentWord.length;
+                    updateMonsterHealthBar();
+                    fireStrongLaser();
+                    resetShieldWord();
+                    setTimeout(() => {
+                        resetLetters();
+                    }, 5000);
+                }
+            }
+        }
+        
+        // 重新在护盾上显示单词
+        function resetShieldWord() {
+            wordShield.textContent = gameData.currentWord.toLowerCase();
+            wordShield.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        }
+        
+        // 发射强力激光
+        function fireStrongLaser() {
+            const laser = document.createElement('div');
+            laser.className = 'monster-laser super-strong-laser';
+            
+            const monsterRect = monsterCanvas.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+            
+            const startX = monsterRect.left - containerRect.left + monsterRect.width/2;
+            const startY = monsterRect.top - containerRect.top + monsterRect.height/2;
+            const endY = containerRect.height;
+            
+            laser.style.left = `${startX - 12}px`;
+            laser.style.top = `${startY}px`;
+            laser.style.height = '0';
+            laser.style.opacity = '0.8';
+            
+            document.querySelector('.game-container').appendChild(laser);
+            
+            setTimeout(() => {
+                laser.style.transition = 'height 1.2s ease';
+                laser.style.height = `${endY - startY}px`;
+                laser.style.opacity = '1';
+            }, 10);
+            
+            const gameContainer = document.querySelector('.game-container');
+            gameContainer.classList.add('shake-container');
+            setTimeout(() => {
+                gameContainer.classList.remove('shake-container');
+            }, 1200);
+            
+            setTimeout(() => {
+                if (laser.parentNode) {
+                    laser.parentNode.removeChild(laser);
+                }
+            }, 1200);
+        }
+        
+        // 重置字母
+        function resetLetters() {
+            letterContainer.innerHTML = '';
+            targetContainer.innerHTML = '';
+            targetContainer.innerHTML = '<div class="mobile-drag-hint">点击字母然后点击此处放置</div>';
+            
+            for (let i = 0; i < gameData.currentWord.length; i++) {
+                const target = document.createElement('div');
+                target.className = 'target';
+                target.dataset.index = i;
+                target.dataset.expected = gameData.currentWord[i];
+                target.addEventListener('click', handleTargetClick);
+                targetContainer.appendChild(target);
+            }
+            
+            scatterLetters();
+        }
+        
+        // 显示伤害数字
+        function showDamage(element, text, color) {
+            const damageElement = document.createElement('div');
+            damageElement.className = 'damage';
+            damageElement.textContent = text;
+            damageElement.style.color = color;
+            
+            const elementRect = element.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+            
+            damageElement.style.left = (elementRect.left - containerRect.left + elementRect.width/2) + 'px';
+            damageElement.style.top = (elementRect.top - containerRect.top - 20) + 'px';
+            
+            document.querySelector('.monster-area').appendChild(damageElement);
+            
+            setTimeout(() => {
+                if (damageElement.parentNode) {
+                    damageElement.parentNode.removeChild(damageElement);
+                }
+            }, 1500);
+        }
+        
+        // 击败怪兽
+        function defeatMonster() {
+            gameData.monstersDefeated++;
+            monstersDisplay.textContent = gameData.monstersDefeated;
+            
+            const expGained = 20 + gameData.playerLevel * 5;
+            gameData.exp += expGained;
+            
+            const goldGained = 5 + gameData.playerLevel * 2;
+            gameData.gold += goldGained;
+            goldDisplay.textContent = gameData.gold;
+            
+            saveGameData();
+            
+            showDamage(monsterCanvas, `+${expGained} XP`, "#ffd166");
+            showDamage(monsterCanvas, `+${goldGained} 金币`, "#ffd700");
+            
+            updateStats();
+            
+            createVictoryParticles();
+            
+            if (monsterCanvas) {
+                monsterCanvas.classList.add('defeated');
+            }
+            
+            if (gameData.exp >= gameData.expToNextLevel) {
+                setTimeout(levelUp, 1500);
+            }
+            
+            updateChallengeProgress(true);
+            
+            setTimeout(() => {
+                gameData.gameActive = false;
+                letterContainer.innerHTML = '';
+                targetContainer.innerHTML = '';
+                wordShield.textContent = '准备就绪';
+                wordShield.style.backgroundColor = '';
+                fireBtn.classList.remove('active');
+                
+                if (monsterCanvas) {
+                    monsterCanvas.classList.remove('defeated');
+                }
+                
+                gameData.currentChallengeIndex++;
+                setTimeout(() => startNextWord(), 1000);
+            }, 2000);
+        }
+        
+        // 创建胜利粒子效果
+        function createVictoryParticles() {
+            const monsterRect = monsterCanvas.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const startX = monsterRect.left - containerRect.left + monsterRect.width/2;
+                const startY = monsterRect.top - containerRect.top + monsterRect.height/2;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 150 + Math.random() * 200;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--p-tx', `${tx}px`);
+                particle.style.setProperty('--p-ty', `${ty}px`);
+                
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+                
+                const colors = ['#ffd166', '#ff6b6b', '#4ecdc4', '#a855f7', '#06b6d4'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.width = '12px';
+                particle.style.height = '12px';
+                
+                document.querySelector('.game-container').appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1500);
+            }
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            updateChallengeProgress(false);
+            gameData.challengeAttempts++;
+            
+            if (gameData.challengeAttempts >= 3) {
+                alert('挑战失败！你已经尝试了3次。点击确定重新开始。');
+                gameData.gameActive = false;
+                letterContainer.innerHTML = '';
+                targetContainer.innerHTML = '';
+                wordShield.textContent = '挑战失败';
+                wordShield.style.backgroundColor = 'rgba(255, 107, 107, 0.5)';
+                fireBtn.classList.remove('active');
+            } else {
+                alert(`挑战失败！你还有${3 - gameData.challengeAttempts}次尝试机会。点击确定重新尝试当前单词。`);
+                gameData.gameActive = false;
+                letterContainer.innerHTML = '';
+                targetContainer.innerHTML = '';
+                wordShield.textContent = '重新尝试';
+                wordShield.style.backgroundColor = '';
+                fireBtn.classList.remove('active');
+                
+                setTimeout(() => {
+                    startNextWord();
+                }, 500);
+            }
+        }
+        
+        // 挑战成功
+        function challengeSuccess() {
+            const expReward = gameData.challengeWords.length * 15;
+            const goldReward = gameData.challengeWords.length * 10;
+            
+            gameData.exp += expReward;
+            gameData.gold += goldReward;
+            goldDisplay.textContent = gameData.gold;
+            
+            saveGameData();
+            
+            rewardGold.textContent = `+${goldReward}`;
+            rewardExp.textContent = `+${expReward}`;
+            
+            rewardPopup.style.display = 'block';
+            overlay.style.display = 'block';
+            
+            if (gameData.exp >= gameData.expToNextLevel) {
+                setTimeout(levelUp, 1000);
+            }
+        }
+        
+        // 升级
+        function levelUp() {
+            gameData.playerLevel++;
+            gameData.exp -= gameData.expToNextLevel;
+            gameData.expToNextLevel = Math.floor(gameData.expToNextLevel * 1.5);
+            gameData.maxHP += 20;
+            
+            saveGameData();
+            
+            newLevelDisplay.textContent = gameData.playerLevel;
+            levelUpPopup.style.display = 'block';
+            overlay.style.display = 'block';
+            
+            updateStats();
+        }
+        
+        // 隐藏升级弹窗
+        function hideLevelUpPopup() {
+            levelUpPopup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+        
+        // 更新状态显示
+        function updateStats() {
+            levelDisplay.textContent = gameData.playerLevel;
+            expDisplay.textContent = gameData.exp;
+            monstersDisplay.textContent = gameData.monstersDefeated;
+            goldDisplay.textContent = gameData.gold;
+            updateLives();
+        }
+        
+        // 更新生命值显示
+        function updateLives() {
+            livesDisplay.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'heart';
+                heart.innerHTML = i < gameData.playerLives ? '❤️' : '🤍';
+                livesDisplay.appendChild(heart);
+            }
+        }
+        
+        // 播放单词发音
+        function speakWord() {
+            if (!gameData.currentWord || !gameData.gameActive) return;
+            
+            const currentWordData = gameData.challengeWords[gameData.currentChallengeIndex];
+            if (!currentWordData || !currentWordData.audio) return;
+            
+            const audio = new Audio(currentWordData.audio);
+            audio.play().catch(e => console.log("播放失败:", e));
+        }
+        
+        // 工具函数：打乱数组顺序
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // 初始化游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
