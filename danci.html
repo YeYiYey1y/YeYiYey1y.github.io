@@ -982,7 +982,7 @@
         }
 
         .upload-btn {
-            background: linear-gradient(to right, #4ecdc4, #1a9e94);
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
             color: white;
             padding: 12px 25px;
             border-radius: 50px;
@@ -1411,6 +1411,26 @@
             font-weight: bold;
             text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
+        
+        /* 上传状态指示器 */
+        .upload-status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .upload-status.success {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+            display: block;
+        }
+        
+        .upload-status.error {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -1515,6 +1535,7 @@
                 <i class="fas fa-cloud-upload-alt"></i> 选择单词XLSX文件
             </div>
             <div class="upload-info">上传自定义单词XLSX文件扩展您的词汇库</div>
+            <div class="upload-status" id="uploadStatus"></div>
         </div>
         
         <!-- 成就区域 -->
@@ -1671,11 +1692,14 @@
         const closeRewardBtn = document.getElementById('closeRewardBtn');
         const currentWordsetInfo = document.getElementById('currentWordsetInfo');
         const monsterNameLabel = document.getElementById('monsterName');
+        const uploadStatus = document.getElementById('uploadStatus');
         
         // 处理图片加载失败
         function handleImageError(img) {
             const wordImageContainer = img.parentNode;
             const currentWord = gameData.challengeWords[gameData.currentChallengeIndex];
+            
+            if (!currentWord) return;
             
             // 创建回退内容
             const fallback = document.createElement('div');
@@ -2162,6 +2186,10 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
+                    uploadStatus.textContent = "正在处理文件...";
+                    uploadStatus.className = "upload-status";
+                    uploadStatus.style.display = "block";
+                    
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     
@@ -2176,9 +2204,9 @@
                     const mappedData = jsonData.map(row => {
                         // 确保列名匹配（Excel列名）
                         return {
-                            word: row['word'] || row['单词'] || '',
-                            image: row['image'] || row['图片'] || '',
-                            audio: row['audio'] || row['发音'] || '',
+                            word: row['word'] || row['单词'] || row['英文'] || '',
+                            image: row['image'] || row['图片'] || row['图像'] || '',
+                            audio: row['audio'] || row['发音'] || row['音频'] || '',
                             phonetic: row['phonetic'] || row['音标'] || '',
                             translation: row['translation'] || row['翻译'] || '',
                             examples: [
@@ -2209,16 +2237,19 @@
                     gameData.wordsetName = wordsetName;
                     updateWordsetInfo();
                     
-                    alert(`单词上传成功！共加载 ${mappedData.length} 个单词。`);
+                    uploadStatus.textContent = `单词上传成功！共加载 ${mappedData.length} 个单词。`;
+                    uploadStatus.className = "upload-status success";
                     resetGameState();
                     
                 } catch (error) {
-                    alert('解析XLSX文件失败: ' + error.message);
                     console.error('文件上传错误:', error);
+                    uploadStatus.textContent = '解析XLSX文件失败: ' + error.message;
+                    uploadStatus.className = "upload-status error";
                 }
             };
             reader.onerror = function() {
-                alert('读取文件失败');
+                uploadStatus.textContent = '读取文件失败';
+                uploadStatus.className = "upload-status error";
             };
             reader.readAsArrayBuffer(file);
         }
