@@ -1,0 +1,4503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.85, viewport-fit=cover, user-scalable=no">
+    <title>战场指挥官 - 优化版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden !important;
+            margin: 0;
+            background: linear-gradient(135deg, #0c1445, #2c1a5e, #0c1445);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            position: relative;
+            width: min(420px, 100%);
+            height: 780px;
+            background: linear-gradient(to bottom, #0c2461, #1e3799, #0c2461);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            border: 4px solid #4a69bd;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            #game-container {
+                width: 100%;
+                max-width: none;
+                margin: 0 auto;
+            }
+        }
+
+        #level-selector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: 24px;
+        }
+
+        #level-title {
+            font-size: 42px;
+            color: #f1c40f;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.9);
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #level-title::before { content: "⚔️ "; }
+        #level-title::after { content: " 🏰"; }
+
+        .level-button {
+            background: linear-gradient(to right, #6c5ce7, #a29bfe);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 40px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            width: 250px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .level-button.completed::before {
+            content: "✓";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #2ecc71;
+        }
+        .level-button:not(.completed)::before {
+            content: "🔒";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #7f8c8d;
+        }
+        .level-button.hard::after {
+            content: "⚠️";
+            margin-left: 8px;
+        }
+
+        .level-info {
+            font-size: 16px;
+            margin-top: 5px;
+            color: #a29bfe;
+        }
+
+        #game-header {
+            height: 70px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            border-bottom: 3px solid #4a69bd;
+            z-index: 100;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .resource i {
+            color: #f6b93b;
+            text-shadow: 0 0 10px rgba(246, 185, 59, 0.8);
+        }
+        .resource.gold i::before { content: "💰"; }
+        .resource.energy i::before { content: "⚡"; }
+        .resource.diamond i::before { content: "💎"; }
+
+        #game-board {
+            width: 100%;
+            height: 580px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(30, 55, 153, 0.3);
+            background-image:
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="none" opacity="0.3"/><path d="M60,0 L60,120 M0,60 L120,60" stroke="%234a69bd" stroke-width="0.8" stroke-dasharray="8,8"/></svg>');
+            background-size: 60px 60px;
+        }
+
+        #player-base, #enemy-base {
+            position: absolute;
+            width: 30%;
+            max-width: 140px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #player-base {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #enemy-base {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .base-building {
+            width: 120px;
+            height: 80px;
+            background: linear-gradient(to bottom, #8e44ad, #6c5ce7);
+            border: 4px solid #f1c40f;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            color: #f1c40f;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+            animation: pulse 2s infinite;
+        }
+        .base-building.player::before { content: "🏰 "; }
+        .base-building.enemy::before { content: "🏯 "; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(241, 196, 15, 0.9); }
+            100% { box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 10px;
+            background: #444;
+            border-radius: 6px;
+            margin-top: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #e74c3c, #2ecc71);
+            transition: width 0.3s ease;
+        }
+        .health-fill.critical {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            animation: flash 1s infinite;
+        }
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #battle-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, transparent, #f1c40f, transparent);
+            z-index: 5;
+            box-shadow: 0 0 15px #f1c40f;
+        }
+
+        #cards-container {
+            height: 150px;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 0 10px;
+            border-top: 3px solid #4a69bd;
+            overflow-x: auto;
+        }
+
+        .card {
+            flex-shrink: 0;
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #4a69bd;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+            border-color: #f1c40f;
+        }
+
+        .card.selected {
+            border-color: #f1c40f;
+            box-shadow: 0 0 30px #f1c40f;
+            animation: cardPulse 1.5s infinite;
+        }
+
+        /* 精美的等级边框效果 */
+        .card.level-1 {
+            border: 3px solid #3498db;
+            box-shadow: 0 0 10px #3498db;
+        }
+        .card.level-2 {
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 15px #2ecc71, inset 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+        .card.level-3 {
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 20px #f1c40f, inset 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+        .card.level-4 {
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 25px #e74c3c, inset 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        .card.level-5 {
+            border: 3px solid #9b59b6;
+            box-shadow: 0 0 30px #9b59b6, inset 0 0 15px rgba(155, 89, 182, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+        .card.level-6 {
+            border: 3px solid;
+            border-image: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000) 1;
+            animation: rainbowGlow 3s infinite alternate;
+            box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px rgba(255,0,255,0.5);
+        }
+
+        @keyframes rainbowGlow {
+            0% { box-shadow: 0 0 10px rgba(255,0,0,0.7), 0 0 20px rgba(255,0,0,0.5); }
+            14% { box-shadow: 0 0 10px rgba(255,128,0,0.7), 0 0 20px rgba(255,128,0,0.5); }
+            28% { box-shadow: 0 0 10px rgba(255,255,0,0.7), 0 0 20px rgba(255,255,0,0.5); }
+            42% { box-shadow: 0 0 10px rgba(0,255,0,0.7), 0 0 20px rgba(0,255,0,0.5); }
+            57% { box-shadow: 0 0 10px rgba(0,255,255,0.7), 0 0 20px rgba(0,255,255,0.5); }
+            71% { box-shadow: 0 0 10px rgba(0,128,255,0.7), 0 0 20px rgba(0,128,255,0.5); }
+            85% { box-shadow: 0 0 10px rgba(0,0,255,0.7), 0 0 20px rgba(0,0,255,0.5); }
+            100% { box-shadow: 0 0 10px rgba(128,0,255,0.7), 0 0 20px rgba(128,0,255,0.5); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 15px #9b59b6, inset 0 0 10px rgba(155, 89, 182, 0.5); }
+            100% { box-shadow: 0 0 30px #9b59b6, inset 0 0 20px rgba(155, 89, 182, 0.7); }
+        }
+
+        @keyframes cardPulse {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.05); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        .card-cost {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: #f1c40f;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #000;
+            font-size: 14px;
+            z-index: 2;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            z-index: 2;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            margin-top: 15px;
+        }
+
+        .card-name {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 2;
+            padding: 0 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-level {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #9b59b6;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .character {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            transition: transform 0.3s ease;
+        }
+
+        .player-character {
+            border: 3px solid #2ecc71;
+            animation: spawnAnimation 0.7s ease-out;
+            cursor: pointer;
+        }
+
+        @keyframes spawnAnimation {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            70% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .enemy-character {
+            border: 3px solid #e74c3c;
+            animation: enemySpawn 0.7s ease-out;
+        }
+
+        @keyframes enemySpawn {
+            0% { transform: translateY(-60px) scale(0.5) rotate(0deg); opacity: 0; }
+            70% { transform: translateY(10px) scale(1.1) rotate(-10deg); opacity: 1; }
+            100% { transform: translateY(0) scale(1) rotate(0deg); }
+        }
+
+        .character-health {
+            position: absolute;
+            bottom: -18px;
+            width: 50px;
+            height: 8px;
+            background: #444;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .health-fill-character {
+            height: 100%;
+            background: #2ecc71;
+            transition: width 0.3s ease;
+        }
+
+        .enemy-character .health-fill-character {
+            background: #e74c3c;
+        }
+
+        .projectile {
+            position: absolute;
+            z-index: 15;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: projectileFloat 0.5s infinite alternate;
+        }
+
+        @keyframes projectileFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        /* 战士剑攻击特效 */
+        .warrior-attack {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10,50 L90,50 M50,10 L50,90" stroke="%233498db" stroke-width="8" stroke-linecap="round"/></svg>');
+            background-size: contain;
+            animation: swordSlash 0.4s forwards;
+            pointer-events: none;
+            z-index: 25;
+        }
+
+        @keyframes swordSlash {
+            0% { transform: scale(0.1) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.5) rotate(45deg); opacity: 1; }
+            100% { transform: scale(2) rotate(90deg); opacity: 0; }
+        }
+
+        /* 射手箭攻击特效 - 优化 */
+        .archer-projectile {
+            width: 30px;
+            height: 8px;
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            border-radius: 4px;
+            box-shadow: 0 0 10px #2ecc71;
+            transform-origin: center;
+            position: relative;
+        }
+        
+        .archer-projectile.power-shot {
+            width: 40px;
+            height: 12px;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            box-shadow: 0 0 15px #ffd700;
+            z-index: 18;
+        }
+        
+        /* 射手箭矢尾翼 */
+        .archer-projectile::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            top: -2px;
+            left: 0;
+            border-top: 4px solid #2ecc71;
+            border-right: 4px solid transparent;
+            border-bottom: 4px solid #2ecc71;
+            border-left: 4px solid transparent;
+            transform: rotate(45deg);
+        }
+        
+        .archer-projectile.power-shot::after {
+            border-top: 6px solid #ffd700;
+            border-bottom: 6px solid #ffd700;
+        }
+        
+        /* 射手箭矢轨迹 */
+        .archer-trail {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(46, 204, 113, 0.4);
+            animation: trailFade 0.5s forwards;
+            pointer-events: none;
+            z-index: 14;
+        }
+
+        /* 法师火球特效 - 优化 */
+        .mage-projectile {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff8800, #ff0000);
+            box-shadow: 0 0 20px #ff0000;
+            animation: firePulse 0.5s infinite alternate;
+        }
+        
+        /* 火球拖尾效果 */
+        .mage-projectile::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #ff8800, transparent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.7;
+            animation: fadeTrail 0.5s forwards;
+            z-index: -1;
+        }
+
+        @keyframes fadeTrail {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+
+        @keyframes firePulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+
+        /* 刺客飞镖特效 */
+        .blade-projectile {
+            width: 16px;
+            height: 16px;
+            background: #e74c3c;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px #e74c3c;
+            animation: spin 0.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(45deg); }
+            100% { transform: rotate(405deg); }
+        }
+
+        /* 骑士圣光特效 */
+        .paladin-attack {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10,50 L90,50 M50,10 L50,90" stroke="%23f1c40f" stroke-width="8" stroke-linecap="round"/></svg>');
+            background-size: contain;
+            animation: holyCross 0.5s forwards;
+            pointer-events: none;
+            z-index: 25;
+        }
+
+        @keyframes holyCross {
+            0% { transform: scale(0.1); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .damage-effect {
+            position: absolute;
+            font-size: 18px;
+            font-weight: bold;
+            animation: floatUp 1.2s forwards;
+            z-index: 30;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-40px); opacity: 0; }
+        }
+
+        .heal-effect {
+            position: absolute;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2ecc71;
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.8);
+            animation: floatUp 1.8s forwards;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        #game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px 50px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 200;
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 40px rgba(241, 196, 15, 0.9);
+            display: none;
+            animation: messageAppear 0.7s ease-out;
+        }
+
+        @keyframes messageAppear {
+            0% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #message-title {
+            font-size: 42px;
+            color: #f1c40f;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.9);
+        }
+
+        #message-content {
+            font-size: 22px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .game-button {
+            background: linear-gradient(to right, #f1c40f, #e67e22);
+            border: none;
+            padding: 12px 35px;
+            border-radius: 40px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            margin: 0 10px;
+        }
+
+        .game-button:hover {
+            transform: scale(1.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        #level-up-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px 30px;
+            border-radius: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 3px solid #f1c40f;
+            z-index: 200;
+            display: none;
+            animation: slideUp 0.7s ease-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            width: 380px;
+            justify-content: center;
+        }
+
+        @keyframes slideUp {
+            0% { bottom: -100px; opacity: 0; }
+            100% { bottom: 0; opacity: 1; }
+        }
+
+        .level-up-option {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid #4a69bd;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+
+        .level-up-option:hover {
+            background: linear-gradient(135deg, #2a5298, #3a6bc7);
+            border-color: #f1c40f;
+            transform: translateY(-3px);
+        }
+
+        .character.warrior {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
+        }
+        .character.archer {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
+        }
+        .character.mage {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.8);
+        }
+        .character.blade {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+        }
+        .character.paladin {
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+        }
+
+        .enemy.normal {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 0 15px rgba(149, 165, 166, 0.8);
+        }
+        .enemy.elite {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+        }
+        .enemy.boss {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 0 25px rgba(155, 89, 182, 1);
+            animation: bossPulse 2.5s infinite;
+            transform: translate(-10px, -10px);
+        }
+        .enemy.tank {
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            box-shadow: 0 0 15px rgba(52, 73, 94, 0.8);
+        }
+        .enemy.speedy {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
+        }
+        .enemy.flyer {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            box-shadow: 0 0 15px rgba(26, 188, 156, 0.8);
+            animation: flyAnimation 1.5s infinite alternate;
+        }
+        .enemy.magic-immune {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.8);
+            animation: magicPulse 3s infinite alternate;
+        }
+        .enemy.physical-immune {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            box-shadow: 0 0 15px rgba(52, 73, 94, 0.8);
+            animation: physicalPulse 3s infinite alternate;
+        }
+
+        @keyframes flyAnimation {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+
+        @keyframes bossPulse {
+            0% { transform: scale(1) translate(-10px, -10px); box-shadow: 0 0 15px rgba(155, 89, 182, 0.8); }
+            50% { transform: scale(1.08) translate(-10px, -10px); box-shadow: 0 0 30px rgba(155, 89, 182, 1); }
+            100% { transform: scale(1) translate(-10px, -10px); box-shadow: 0 0 15px rgba(155, 89, 182, 0.8); }
+        }
+
+        @keyframes magicPulse {
+            0% { box-shadow: 0 0 10px rgba(155, 89, 182, 0.6); }
+            50% { box-shadow: 0 0 20px rgba(155, 89, 182, 1); }
+            100% { box-shadow: 0 0 10px rgba(155, 89, 182, 0.6); }
+        }
+
+        @keyframes physicalPulse {
+            0% { box-shadow: 0 0 10px rgba(52, 73, 94, 0.6); }
+            50% { box-shadow: 0 0 20px rgba(52, 73, 94, 1); }
+            100% { box-shadow: 0 0 10px rgba(52, 73, 94, 0.6); }
+        }
+
+        #elixir-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        #elixir-fill {
+            height: 100%;
+            background: linear-gradient(to right, #6c5ce7, #a29bfe);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        #tutorial {
+            position: absolute;
+            top: 80px;
+            left: 25px;
+            right: 25px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 200;
+            border: 3px solid #f1c40f;
+            animation: tutorialPulse 3.5s infinite;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        @keyframes tutorialPulse {
+            0% { box-shadow: 0 0 10px rgba(241, 196, 15, 0.6); }
+            50% { box-shadow: 0 0 25px rgba(241, 196, 15, 0.9); }
+            100% { box-shadow: 0 0 10px rgba(241, 196, 15, 0.6); }
+        }
+
+        #tutorial h3 {
+            color: #f1c40f;
+            margin-bottom: 15px;
+            font-size: 22px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+        }
+
+        #tutorial p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        #tutorial-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #f1c40f;
+            font-size: 24px;
+            cursor: pointer;
+            text-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
+        }
+
+        #particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: floatParticle 12s infinite linear;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-120px) translateX(30px); opacity: 0; }
+        }
+
+        /* 攻击动画 */
+        .attack-animation {
+            animation: attackBlink 0.3s;
+        }
+
+        @keyframes attackBlink {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* 召回按钮 */
+        #recall-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(231, 76, 60, 0.9);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            z-index: 150;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        #recall-button:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+
+        #timer-display {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 100;
+            border: 2px solid #f1c40f;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.5);
+            text-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
+        }
+
+        /* 暂停按钮 */
+        #pause-button {
+            position: absolute;
+            top: 75px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 2px solid #f1c40f;
+        }
+
+        #pause-button i {
+            font-size: 20px;
+            color: #f1c40f;
+        }
+
+        /* 卡片详情面板 */
+        #card-detail {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            width: 300px;
+            padding: 25px;
+            border-radius: 20px;
+            z-index: 250;
+            border: 3px solid #4a69bd;
+            box-shadow: 0 0 30px rgba(74, 105, 189, 0.8);
+            display: none;
+        }
+
+        /* 卡片详情边框等级效果 */
+        #card-detail.level-1 {
+            border: 3px solid #3498db;
+            box-shadow: 0 0 10px #3498db;
+        }
+        #card-detail.level-2 {
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 15px #2ecc71, inset 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+        #card-detail.level-3 {
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 20px #f1c40f, inset 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+        #card-detail.level-4 {
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 25px #e74c3c, inset 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        #card-detail.level-5 {
+            border: 3px solid #9b59b6;
+            box-shadow: 0 0 30px #9b59b6, inset 0 0 15px rgba(155, 89, 182, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+        #card-detail.level-6 {
+            border: 3px solid;
+            border-image: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000) 1;
+            animation: rainbowGlow 3s infinite alternate;
+            box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px rgba(255,0,255,0.5);
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .detail-icon {
+            font-size: 42px;
+            margin-right: 15px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #4a69bd;
+        }
+
+        .detail-info h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .detail-level {
+            font-size: 18px;
+            color: #f1c40f;
+        }
+
+        .detail-stats {
+            margin-top: 20px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-label {
+            color: #a29bfe;
+        }
+
+        .stat-value {
+            font-weight: bold;
+        }
+
+        /* 敌人信息面板 */
+        #enemy-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            width: 250px;
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 250;
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 25px rgba(231, 76, 60, 0.7);
+            display: none;
+        }
+
+        .enemy-type {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #e74c3c;
+        }
+
+        .enemy-icon {
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        #next-level-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 200;
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 40px rgba(241, 196, 15, 0.9);
+            display: none;
+        }
+
+        #next-level-title {
+            font-size: 32px;
+            color: #f1c40f;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.9);
+        }
+
+        #next-level-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* 排行榜样式 */
+        #leaderboard {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 25px;
+            border-radius: 20px;
+            z-index: 300;
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 40px rgba(241, 196, 15, 0.9);
+            display: none;
+        }
+
+        #leaderboard-title {
+            font-size: 32px;
+            color: #f1c40f;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.9);
+        }
+
+        #leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
+        }
+
+        .leaderboard-header {
+            font-weight: bold;
+            color: #f1c40f;
+            background: rgba(241, 196, 15, 0.1);
+        }
+
+        .leaderboard-rank {
+            width: 30px;
+            text-align: center;
+        }
+
+        .leaderboard-time {
+            width: 80px;
+            text-align: right;
+        }
+
+        .leaderboard-kills {
+            width: 60px;
+            text-align: right;
+        }
+
+        .leaderboard-date {
+            width: 100px;
+            text-align: right;
+        }
+
+        #close-leaderboard {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        @media (max-height: 750px) {
+            #game-container {
+                transform: scale(0.85);
+            }
+        }
+
+        .victory-text {
+            color: #f1c40f;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+        }
+
+        #game-message-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        #leaderboard-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(74, 105, 189, 0.8);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            z-index: 150;
+        }
+
+        /* 技能容器 */
+        #skills-container {
+            position: absolute;
+            bottom: 160px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            z-index: 50;
+        }
+
+        .skill-button {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .skill-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.5);
+        }
+
+        .skill-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 法力注入按钮新样式 - 圆形 */
+        #elixir-boost {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            font-size: 24px;
+            animation: pulse 2s infinite;
+            opacity: 0.8;
+        }
+
+        /* 角色死亡特效 */
+        .explosion {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            z-index: 40;
+            pointer-events: none;
+            animation: explode 0.6s forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0.8); opacity: 1; }
+            70% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .explosion-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: particle-explode 0.8s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes particle-explode {
+            0% { transform: translate(0, 0); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+        }
+
+        /* 伤害类型标签 */
+        .damage-type {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .physical-damage {
+            background: rgba(52, 152, 219, 0.7);
+        }
+        .magic-damage {
+            background: rgba(155, 89, 182, 0.7);
+        }
+        .mixed-damage {
+            background: linear-gradient(to right, rgba(52, 152, 219, 0.7), rgba(155, 89, 182, 0.7));
+        }
+
+        /* 新增特效 */
+        .hit-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: hitParticleMove 0.7s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes hitParticleMove {
+            0% { transform: translate(0, 0); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+        }
+
+        @keyframes trailFade {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* 技能特效 */
+        .skill-indicator {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 35;
+            animation: skillIndicator 0.8s forwards;
+        }
+
+        @keyframes skillIndicator {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* 角色表情系统 */
+        .character-emotion {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            z-index: 30;
+            animation: emotionFloat 2s forwards;
+            opacity: 0;
+            text-shadow: 0 0 8px rgba(0,0,0,0.8);
+            padding: 5px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        @keyframes emotionFloat {
+            0% { transform: translateX(-50%) translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(-50%) translateY(-40px); opacity: 0; }
+        }
+
+        .emotion-happy { color: #f1c40f; }
+        .emotion-angry { color: #e74c3c; }
+        .emotion-sad { color: #3498db; }
+        .emotion-proud { color: #2ecc71; }
+        .emotion-scared { color: #9b59b6; }
+        .emotion-excited { color: #ff6b6b; }
+        .emotion-confident { color: #48dbfb; }
+        .emotion-amazed { color: #feca57; }
+        .emotion-determined { color: #54a0ff; }
+        .emotion-annoyed { color: #ff9f43; }
+        .emotion-surprised { color: #48dbfb; }
+        .emotion-tired { color: #feca57; }
+        .emotion-victory { color: #1dd1a1; }
+        .emotion-defeat { color: #ff9ff3; }
+        .emotion-alert { color: #ff0000; }
+
+        /* 新增波次计数器样式 */
+        #wave-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 100;
+            border: 2px solid #f1c40f;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.5);
+            text-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
+        }
+
+        /* 新增波次倒计时样式 */
+        #wave-timer {
+            position: absolute;
+            top: 45px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 100;
+            border: 2px solid #6c5ce7;
+            box-shadow: 0 0 10px rgba(108, 92, 231, 0.5);
+            text-shadow: 0 0 5px rgba(108, 92, 231, 0.8);
+        }
+        
+        /* 新增波次提示 */
+        .wave-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 150;
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.8);
+            animation: waveAlert 1.5s forwards;
+            text-align: center;
+        }
+        
+        @keyframes waveAlert {
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+        }
+
+        /* 碎片提示 */
+        .fragment-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 150;
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.8);
+            animation: waveAlert 1.5s forwards;
+            text-align: center;
+        }
+
+        /* 碎片收集器 */
+        .fragment-collector {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 15px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            border: 2px solid #f1c40f;
+            display: none; /* 默认隐藏 */
+        }
+
+        .fragment-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .fragment-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        /* 碎片收集器按钮 */
+        #toggle-fragments {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #f1c40f;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        
+        /* 圣骑士光环特效 */
+        .paladin-halo {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 35;
+            animation: haloExpand 0.8s forwards;
+            background: radial-gradient(circle, rgba(241, 196, 15, 0.5), transparent 70%);
+        }
+        
+        @keyframes haloExpand {
+            0% { transform: scale(0.1); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        /* 圣骑士治疗特效 */
+        .paladin-heal {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.8), transparent);
+            animation: healGlow 1s forwards;
+            pointer-events: none;
+            z-index: 35;
+        }
+        
+        @keyframes healGlow {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        /* 胜利特效 */
+        .victory-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 180;
+            display: none;
+        }
+        .victory-light {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent 70%);
+            animation: victoryExpand 2s forwards;
+        }
+        @keyframes victoryExpand {
+            0% { width: 0; height: 0; opacity: 0; }
+            50% { width: 600px; height: 600px; opacity: 0.8; }
+            100% { width: 800px; height: 800px; opacity: 0; }
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            animation: confettiFall 3s ease-in forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(800px) rotate(720deg); opacity: 0; }
+        }
+        
+        /* 战士嘲讽光环特效 */
+        .taunt-halo {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 35;
+            animation: haloExpand 1s forwards;
+            background: radial-gradient(circle, rgba(52, 152, 219, 0.6), transparent 70%);
+        }
+        
+        /* 刺客残影特效 */
+        .blade-shadow {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 30;
+            background: rgba(231, 76, 60, 0.6);
+            animation: shadowFade 0.5s forwards;
+        }
+        
+        @keyframes shadowFade {
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* 法师爆炸特效 */
+        .mage-explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff8800, #ff0000, transparent 70%);
+            animation: explode 0.6s forwards;
+            pointer-events: none;
+            z-index: 35;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="particles-container"></div>
+        <div id="victory-effect" class="victory-effect">
+            <div class="victory-light"></div>
+        </div>
+        
+        <!-- 关卡选择界面 -->
+        <div id="level-selector">
+            <h2 id="level-title">战场指挥官</h2>
+            <div class="level-button completed" data-level="1">关卡 1 - 新手训练</div>
+            <div class="level-info">敌人类型: 普通敌人</div>
+            <div class="level-button" data-level="2">关卡 2 - 精英挑战</div>
+            <div class="level-info">敌人类型: 普通 + 精英</div>
+            <div class="level-button" data-level="3">关卡 3 - 地狱模式</div>
+            <div class="level-info">敌人类型: 精英 + Boss + 坦克</div>
+            <div class="level-button" data-level="4">关卡 4 - 最终决战</div>
+            <div class="level-info">敌人类型: 所有敌人组合</div>
+            <div class="level-button" data-level="5">关卡 5 - 极限挑战</div>
+            <div class="level-info">限制4个友军单位</div>
+            <div class="level-button" data-level="endless">无尽关卡</div>
+            <div class="level-info">所有敌人类型，无限波次</div>
+            <button id="leaderboard-button">排行榜</button>
+        </div>
+        
+        <div id="game-header">
+            <div class="resource">
+                <i class="fas fa-coins"></i>
+                <span id="gold-count">250</span>
+            </div>
+            <div class="resource">
+                <i class="fas fa-gem"></i>
+                <span id="elixir-count">10/10</span>
+            </div>
+            <div class="resource" id="endless-stats">
+                <i class="fas fa-clock"></i>
+                <span id="endless-time">00:00</span>
+                <i class="fas fa-skull" style="margin-left: 15px;"></i>
+                <span id="kill-count">0</span>
+            </div>
+        </div>
+        
+        <div id="game-board">
+            <div id="timer-display">03:00</div>
+            <div id="wave-counter">波次: 0</div>
+            <div id="wave-timer">下一波: 30秒</div>
+            
+            <div id="enemy-base">
+                <div class="base-building">
+                    <i class="fas fa-fort-awesome"></i>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" id="enemy-health" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div id="player-base">
+                <div class="base-building">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" id="player-health" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div id="battle-line"></div>
+        </div>
+        
+        <div id="elixir-bar">
+            <div id="elixir-fill"></div>
+        </div>
+        
+        <!-- 碎片收集器按钮 -->
+        <button id="toggle-fragments">碎片收集器</button>
+        
+        <!-- 碎片收集器 -->
+        <div class="fragment-collector">
+            <div class="fragment-type">
+                <div class="fragment-icon">战</div>
+                <span id="warrior-fragments">0/5</span>
+            </div>
+            <div class="fragment-type">
+                <div class="fragment-icon">射</div>
+                <span id="archer-fragments">0/5</span>
+            </div>
+            <div class="fragment-type">
+                <div class="fragment-icon">法</div>
+                <span id="mage-fragments">0/5</span>
+            </div>
+            <div class="fragment-type">
+                <div class="fragment-icon">刺</div>
+                <span id="blade-fragments">0/5</span>
+            </div>
+            <div class="fragment-type">
+                <div class="fragment-icon">骑</div>
+                <span id="paladin-fragments">0/5</span>
+            </div>
+        </div>
+        
+        <!-- 技能按钮 -->
+        <button id="elixir-boost" class="skill-button" title="法力注入 (50金币)"><i class="fas fa-bolt"></i></button>
+        
+        <div id="cards-container">
+            <div class="card level-1" data-type="warrior">
+                <div class="card-cost">4</div>
+                <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="card-name">圣盾战士</div>
+                <div class="card-level">1</div>
+            </div>
+            <div class="card level-1" data-type="archer">
+                <div class="card-cost">3</div>
+                <div class="card-icon"><i class="fas fa-bullseye"></i></div>
+                <div class="card-name">精灵射手</div>
+                <div class="card-level">1</div>
+            </div>
+            <div class="card level-1" data-type="mage">
+                <div class="card-cost">4</div>
+                <div class="card-icon"><i class="fas fa-hat-wizard"></i></div>
+                <div class="card-name">奥术法师</div>
+                <div class="card-level">1</div>
+            </div>
+            <div class="card level-1" data-type="blade">
+                <div class="card-cost">3</div>
+                <div class="card-icon"><i class="fas fa-user-ninja"></i></div>
+                <div class="card-name">影刃刺客</div>
+                <div class="card-level">1</div>
+            </div>
+            <div class="card level-1" data-type="paladin">
+                <div class="card-cost">5</div>
+                <div class="card-icon"><i class="fas fa-hands-praying"></i></div>
+                <div class="card-name">神圣骑士</div>
+                <div class="card-level">1</div>
+            </div>
+        </div>
+        
+        <div id="level-up-container">
+            <div class="victory-text">胜利！选择要升级的单位</div>
+            <div class="level-up-option" data-type="warrior">升级圣盾战士</div>
+            <div class="level-up-option" data-type="archer">升级精灵射手</div>
+            <div class="level-up-option" data-type="mage">升级奥术法师</div>
+            <div class="level-up-option" data-type="blade">升级影刃刺客</div>
+            <div class="level-up-option" data-type="paladin">升级神圣骑士</div>
+            <button id="back-to-levels-upgrade" class="game-button">返回关卡选择</button>
+        </div>
+        
+        <div id="game-message">
+            <div id="message-title">胜利！</div>
+            <div id="message-content">你成功坚持了3分钟！获得100金币</div>
+            <div id="game-message-buttons">
+                <button id="restart-button" class="game-button">继续战斗</button>
+                <button id="back-to-levels" class="game-button">返回关卡选择</button>
+            </div>
+        </div>
+        
+        <div id="tutorial">
+            <button id="tutorial-close"><i class="fas fa-times"></i></button>
+            <h3>游戏指南</h3>
+            <p>1. 选择卡牌，放置在我方半场</p>
+            <p>2. 点击角色可召回（返还50%法力）</p>
+            <p>3. 坚持3分钟即可获得胜利</p>
+            <p>4. 胜利后获得金币升级角色</p>
+            <p>5. 角色自动战斗，无法重叠放置</p>
+            <p>6. 使用"法力注入"技能获得额外法力</p>
+            <p>7. 战士/射手：物理伤害 | 法师/骑士：法术伤害 | 刺客：混合伤害</p>
+            <p>8. 物理免疫怪：法术伤害减半 | 法术免疫怪：物理伤害减半 | 刺客：无视抗性</p>
+            <p>9. 每个角色都有独特的自动技能！</p>
+            <p>10. 在无尽模式中，每击败50个敌人可获得角色碎片</p>
+            <p>11. 收集5个碎片可升级角色至6级</p>
+        </div>
+        
+        <div id="next-level-container">
+            <div id="next-level-title">升级完成！</div>
+            <p>准备进入下一关吗？</p>
+            <div id="next-level-buttons">
+                <button id="next-level-button" class="game-button">进入下一关</button>
+                <button id="replay-level-button" class="game-button">重新挑战</button>
+                <button id="back-to-levels-next" class="game-button">返回关卡选择</button>
+            </div>
+        </div>
+        
+        <button id="recall-button">召回角色</button>
+        
+        <!-- 暂停按钮 -->
+        <div id="pause-button">
+            <i class="fas fa-pause"></i>
+        </div>
+        
+        <!-- 卡片详情面板 -->
+        <div id="card-detail">
+            <div class="detail-header">
+                <div class="detail-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="detail-info">
+                    <h3>圣盾战士</h3>
+                    <div class="detail-level">等级 <span id="detail-level">1</span></div>
+                </div>
+            </div>
+            <div class="detail-stats">
+                <div class="stat-row">
+                    <span class="stat-label">生命值:</span>
+                    <span class="stat-value" id="detail-health">350</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">攻击力:</span>
+                    <span class="stat-value" id="detail-damage">25</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">攻击范围:</span>
+                    <span class="stat-value" id="detail-range">90</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">攻击速度:</span>
+                    <span class="stat-value" id="detail-attackspeed">1.4秒</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">法力消耗:</span>
+                    <span class="stat-value" id="detail-cost">4</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">伤害类型:</span>
+                    <span class="stat-value" id="detail-damage-type">物理</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">技能:</span>
+                    <span class="stat-value" id="detail-skill">嘲讽+反弹伤害</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">碎片:</span>
+                    <span class="stat-value" id="detail-fragments">0/5</span>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-detail" class="game-button">关闭</button>
+            </div>
+        </div>
+        
+        <div id="enemy-info">
+            <div class="enemy-type" id="enemy-type-name">普通敌人</div>
+            <div class="enemy-icon"><i class="fas fa-skull"></i></div>
+            <div class="detail-stats">
+                <div class="stat-row">
+                    <span class="stat-label">生命值:</span>
+                    <span class="stat-value" id="enemy-info-health">120</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">攻击力:</span>
+                    <span class="stat-value" id="enemy-info-damage">15</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">攻击范围:</span>
+                    <span class="stat-value" id="enemy-info-range">85</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">伤害抗性:</span>
+                    <span class="stat-value" id="enemy-info-resistance">无</span>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-enemy-info" class="game-button">关闭</button>
+            </div>
+        </div>
+
+        <!-- 排行榜 -->
+        <div id="leaderboard">
+            <h2 id="leaderboard-title">无尽模式排行榜</h2>
+            <ul id="leaderboard-list">
+                <li class="leaderboard-item leaderboard-header">
+                    <span class="leaderboard-rank">#</span>
+                    <span class="leaderboard-time">时间</span>
+                    <span class="leaderboard-kills">击杀</span>
+                    <span class="leaderboard-date">日期</span>
+                </li>
+            </ul>
+            <button id="close-leaderboard" class="game-button">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 游戏状态
+            // 从localStorage加载保存的数据
+            const loadGameData = () => {
+                const savedData = localStorage.getItem('battlefieldSaveData');
+                return savedData ? JSON.parse(savedData) : null;
+            };
+
+            // 保存数据到localStorage
+            const saveGameData = () => {
+                const saveData = {
+                    gold: gameState.gold,
+                    completedLevels: gameState.completedLevels,
+                    currentLevel: gameState.currentLevel,
+                    characterLevels: gameState.characterLevels,
+                    fragments: gameState.fragments
+                };
+                localStorage.setItem('battlefieldSaveData', JSON.stringify(saveData));
+            };
+
+            const loadedData = loadGameData();
+            const gameState = {
+                gold: loadedData?.gold || 250,
+                elixir: 10,
+                maxElixir: 10,
+                playerHealth: 100,
+                enemyHealth: 100,
+                selectedCard: null,
+                playerCharacters: [],
+                enemyCharacters: [],
+                projectiles: [],
+                damageEffects: [],
+                healEffects: [],
+                attackEffects: [],
+                skillEffects: [],
+                gameOver: false,
+                characterLevels: loadedData?.characterLevels || {
+                    warrior: 1,
+                    archer: 1,
+                    mage: 1,
+                    blade: 1,
+                    paladin: 1
+                },
+                fragments: loadedData?.fragments || {
+                    warrior: 0,
+                    archer: 0,
+                    mage: 0,
+                    blade: 0,
+                    paladin: 0
+                },
+                characterBaseStats: {
+                    warrior: { health: 350, damage: 25, cost: 4, range: 90, attackSpeed: 1400, healPower: 0, speed: 0.35, damageType: 'physical' },
+                    archer: { health: 180, damage: 35, cost: 3, range: 220, attackSpeed: 1100, healPower: 0, speed: 0.4, damageType: 'physical' },
+                    mage: { health: 150, damage: 55, cost: 4, range: 200, attackSpeed: 1800, healPower: 0, speed: 0.25, damageType: 'magic' },
+                    blade: { health: 220, damage: 65, cost: 3, range: 70, attackSpeed: 900, healPower: 0, speed: 0.5, damageType: 'mixed' },
+                    paladin: { health: 300, damage: 20, cost: 5, range: 90, attackSpeed: 1600, healPower: 30, speed: 0.3, damageType: 'magic' }
+                },
+                characterStats: {},
+                enemyWaveCount: 0,
+                tutorialClosed: localStorage.getItem('tutorialClosed') === 'true',
+                lastSpawnTime: 0,
+                spawnInterval: 3000,
+                gameTime: 0,
+                victoryTime: 3 * 60, // 3分钟
+                selectedCharacter: null,
+                recallButtonVisible: false,
+                paused: false,
+                currentLevel: 1,
+                maxLevels: {
+                    1: 5,
+                    2: 5,
+                    3: 5,
+                    4: 5,
+                    5: 5,
+                    endless: 6
+                },
+                completedLevels: loadedData?.completedLevels || [],
+                endlessMode: false,
+                killCount: 0,
+                maxPlayerUnits: 6,
+                nextWaveTimer: 0,
+                waveInterval: 30000, // 30秒一波敌人
+                // 新增波次信息
+                waveCount: 0,
+                currentRunFragments: [], // 当前游戏获得的碎片
+                lastFragmentKill: 0 // 上次获得碎片时的击杀数
+            };
+
+            // 初始化角色属性
+            function initCharacterStats() {
+                for (const type in gameState.characterBaseStats) {
+                    gameState.characterStats[type] = {...gameState.characterBaseStats[type]};
+                    
+                    // 根据等级提升属性
+                    const level = gameState.characterLevels[type];
+                    if (level > 1) {
+                        for (let i = 2; i <= level; i++) {
+                            gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
+                            gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
+                            
+                            if (type === 'paladin') {
+                                gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // DOM 元素
+            const elements = {
+                goldCount: document.getElementById('gold-count'),
+                elixirCount: document.getElementById('elixir-count'),
+                elixirFill: document.getElementById('elixir-fill'),
+                playerHealth: document.getElementById('player-health'),
+                enemyHealth: document.getElementById('enemy-health'),
+                cards: document.querySelectorAll('.card'),
+                gameBoard: document.getElementById('game-board'),
+                gameMessage: document.getElementById('game-message'),
+                messageTitle: document.getElementById('message-title'),
+                messageContent: document.getElementById('message-content'),
+                restartButton: document.getElementById('restart-button'),
+                backToLevelsButton: document.getElementById('back-to-levels'),
+                backToLevelsUpgrade: document.getElementById('back-to-levels-upgrade'),
+                backToLevelsNext: document.getElementById('back-to-levels-next'),
+                levelUpContainer: document.getElementById('level-up-container'),
+                levelUpOptions: document.querySelectorAll('.level-up-option'),
+                tutorial: document.getElementById('tutorial'),
+                tutorialClose: document.getElementById('tutorial-close'),
+                particlesContainer: document.getElementById('particles-container'),
+                recallButton: document.getElementById('recall-button'),
+                timerDisplay: document.getElementById('timer-display'),
+                levelSelector: document.getElementById('level-selector'),
+                levelButtons: document.querySelectorAll('.level-button'),
+                pauseButton: document.getElementById('pause-button'),
+                cardDetail: document.getElementById('card-detail'),
+                detailLevel: document.getElementById('detail-level'),
+                detailHealth: document.getElementById('detail-health'),
+                detailDamage: document.getElementById('detail-damage'),
+                detailRange: document.getElementById('detail-range'),
+                detailAttackSpeed: document.getElementById('detail-attackspeed'),
+                detailCost: document.getElementById('detail-cost'),
+                enemyInfo: document.getElementById('enemy-info'),
+                enemyTypeName: document.getElementById('enemy-type-name'),
+                enemyInfoHealth: document.getElementById('enemy-info-health'),
+                enemyInfoDamage: document.getElementById('enemy-info-damage'),
+                enemyInfoRange: document.getElementById('enemy-info-range'),
+                nextLevelContainer: document.getElementById('next-level-container'),
+                nextLevelButton: document.getElementById('next-level-button'),
+                replayLevelButton: document.getElementById('replay-level-button'),
+                closeDetail: document.getElementById('close-detail'),
+                closeEnemyInfo: document.getElementById('close-enemy-info'),
+                endlessStats: document.getElementById('endless-stats'),
+                endlessTime: document.getElementById('endless-time'),
+                killCount: document.getElementById('kill-count'),
+                leaderboard: document.getElementById('leaderboard'),
+                leaderboardList: document.getElementById('leaderboard-list'),
+                leaderboardButton: document.getElementById('leaderboard-button'),
+                closeLeaderboard: document.getElementById('close-leaderboard'),
+                elixirBoostButton: document.getElementById('elixir-boost'),
+                damageType: document.getElementById('detail-damage-type'),
+                enemyResistance: document.getElementById('enemy-info-resistance'),
+                detailSkill: document.getElementById('detail-skill'),
+                detailFragments: document.getElementById('detail-fragments'),
+                // 新增元素
+                waveCounter: document.getElementById('wave-counter'),
+                waveTimer: document.getElementById('wave-timer'),
+                // 碎片元素
+                warriorFragments: document.getElementById('warrior-fragments'),
+                archerFragments: document.getElementById('archer-fragments'),
+                mageFragments: document.getElementById('mage-fragments'),
+                bladeFragments: document.getElementById('blade-fragments'),
+                paladinFragments: document.getElementById('paladin-fragments'),
+                // 碎片收集器
+                fragmentCollector: document.querySelector('.fragment-collector'),
+                toggleFragments: document.getElementById('toggle-fragments'),
+                victoryEffect: document.getElementById('victory-effect')
+            };
+
+            // 初始化游戏
+            function initGame() {
+                initCharacterStats();
+                
+                // 更新UI
+                updateUI();
+                setupEventListeners();
+                
+                // 显示教程（如果未关闭）
+                if (!gameState.tutorialClosed) {
+                    elements.tutorial.style.display = 'block';
+                } else {
+                    elements.tutorial.style.display = 'none';
+                }
+                
+                // 初始化关卡选择按钮状态
+                updateLevelSelector();
+                
+                // 开始游戏循环
+                startGameLoop();
+            }
+            
+            // 更新关卡选择器状态
+            function updateLevelSelector() {
+                elements.levelButtons.forEach(button => {
+                    const level = button.dataset.level;
+                    if (gameState.completedLevels.includes(level)) {
+                        button.classList.add('completed');
+                    } else {
+                        button.classList.remove('completed');
+                    }
+                });
+            }
+
+            // 开始关卡
+            function startLevel(level) {
+                gameState.currentLevel = level;
+                saveGameData();
+                gameState.endlessMode = (level === 'endless');
+                gameState.maxPlayerUnits = (level === '5') ? 4 : 
+                                        (level === 'endless') ? 5 : 4;
+                elements.endlessStats.style.display = gameState.endlessMode ? 'flex' : 'none';
+                
+                if (level === 'endless') {
+                    gameState.victoryTime = Infinity;
+                    gameState.killCount = 0;
+                    elements.killCount.textContent = '0';
+                    gameState.currentRunFragments = [];
+                    gameState.lastFragmentKill = 0;
+                }
+                
+                // 重置波次计数器
+                gameState.waveCount = 0;
+                elements.waveCounter.textContent = `波次: ${gameState.waveCount}`;
+                
+                // 设置波次间隔（30秒）
+                gameState.waveInterval = 30000;
+                
+                elements.levelSelector.style.display = 'none';
+                resetGame();
+            }
+
+            // 返回关卡选择
+            function backToLevels() {
+                elements.gameMessage.style.display = 'none';
+                elements.levelUpContainer.style.display = 'none';
+                elements.nextLevelContainer.style.display = 'none';
+                elements.levelSelector.style.display = 'flex';
+                gameState.gameOver = true;
+            }
+
+            // 创建背景粒子
+            function createParticles() {
+                for (let i = 0; i < 60; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    particle.style.animationDelay = `${Math.random() * 6}s`;
+                    particle.style.opacity = Math.random() * 0.6 + 0.3;
+                    
+                    // 随机颜色粒子
+                    const colors = ['#f1c40f', '#3498db', '#2ecc71', '#9b59b6', '#e74c3c'];
+                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    elements.particlesContainer.appendChild(particle);
+                }
+            }
+
+            // 创建命中粒子效果
+            function createHitParticles(x, y, count, color) {
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'hit-particle';
+                    particle.style.background = color;
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    
+                    // 随机方向
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 25 + Math.random() * 40;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--tx', `${tx}px`);
+                    particle.style.setProperty('--ty', `${ty}px`);
+                    
+                    elements.gameBoard.appendChild(particle);
+                    
+                    // 自动移除
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 700);
+                }
+            }
+
+            // 创建角色死亡特效
+            function createDeathEffect(x, y, isPlayer) {
+                // 主爆炸效果
+                const explosion = document.createElement('div');
+                explosion.className = 'explosion';
+                explosion.style.left = `${x - 30}px`;
+                explosion.style.top = `${y - 30}px`;
+                explosion.style.background = isPlayer ? 
+                    'radial-gradient(circle, #3498db, transparent)' : 
+                    'radial-gradient(circle, #e74c3c, transparent)';
+                explosion.style.boxShadow = isPlayer ? 
+                    '0 0 30px #3498db' : 
+                    '0 0 30px #e74c3c';
+                
+                elements.gameBoard.appendChild(explosion);
+                
+                // 创建粒子
+                for (let i = 0; i < 12; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'explosion-particle';
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    particle.style.background = isPlayer ? '#3498db' : '#e74c3c';
+                    
+                    // 随机方向
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 60 + Math.random() * 60;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--tx', `${tx}px`);
+                    particle.style.setProperty('--ty', `${ty}px`);
+                    
+                    elements.gameBoard.appendChild(particle);
+                    
+                    // 自动移除
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 800);
+                }
+                
+                // 移除爆炸效果
+                setTimeout(() => {
+                    if (explosion.parentNode) {
+                        explosion.parentNode.removeChild(explosion);
+                    }
+                }, 600);
+            }
+
+            // 检查角色碰撞
+            function checkCharacterCollision(x, y, radius = 30) {
+                // 检查玩家角色碰撞
+                for (const char of gameState.playerCharacters) {
+                    const dx = x - char.x;
+                    const dy = y - char.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < radius) {
+                        return true;
+                    }
+                }
+                
+                // 检查敌人角色碰撞
+                for (const enemy of gameState.enemyCharacters) {
+                    const dx = x - enemy.x;
+                    const dy = y - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < radius) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            // 更新UI
+            function updateUI() {
+                elements.goldCount.textContent = gameState.gold;
+                elements.elixirCount.textContent = `${Math.floor(gameState.elixir)}/${gameState.maxElixir}`;
+                elements.elixirFill.style.width = `${(gameState.elixir / gameState.maxElixir) * 100}%`;
+                elements.playerHealth.style.width = `${gameState.playerHealth}%`;
+                elements.enemyHealth.style.width = `${gameState.enemyHealth}%`;
+                
+                // 更新卡牌等级显示
+                elements.cards.forEach(card => {
+                    const type = card.dataset.type;
+                    const level = gameState.characterLevels[type];
+                    card.querySelector('.card-level').textContent = level;
+                    
+                    // 更新卡片等级边框
+                    card.className = `card level-${level}`;
+                    
+                    // 禁用无法使用的卡牌
+                    const cost = gameState.characterStats[type].cost;
+                    if (gameState.elixir < cost) {
+                        card.style.opacity = '0.6';
+                    } else {
+                        card.style.opacity = '1';
+                    }
+                });
+                
+                // 更新计时器
+                if (!gameState.endlessMode) {
+                    const remainingTime = Math.max(0, gameState.victoryTime - gameState.gameTime);
+                    const minutes = Math.floor(remainingTime / 60);
+                    const seconds = Math.floor(remainingTime % 60);
+                    elements.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    // 无尽模式显示游戏时间
+                    const minutes = Math.floor(gameState.gameTime / 60);
+                    const seconds = Math.floor(gameState.gameTime % 60);
+                    elements.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    elements.endlessTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+                
+                // 更新波次计数器
+                elements.waveCounter.textContent = `波次: ${gameState.waveCount}`;
+                
+                // 更新下一波倒计时
+                if (gameState.nextWaveTimer > 0) {
+                    const timeLeft = Math.max(0, gameState.nextWaveTimer - Date.now());
+                    const secondsLeft = Math.ceil(timeLeft / 1000);
+                    elements.waveTimer.textContent = `下一波: ${secondsLeft}秒`;
+                } else {
+                    elements.waveTimer.textContent = "下一波: 准备中";
+                }
+                
+                // 更新技能按钮状态
+                elements.elixirBoostButton.disabled = gameState.gold < 50;
+                
+                // 更新碎片显示
+                elements.warriorFragments.textContent = `${gameState.fragments.warrior}/5`;
+                elements.archerFragments.textContent = `${gameState.fragments.archer}/5`;
+                elements.mageFragments.textContent = `${gameState.fragments.mage}/5`;
+                elements.bladeFragments.textContent = `${gameState.fragments.blade}/5`;
+                elements.paladinFragments.textContent = `${gameState.fragments.paladin}/5`;
+            }
+
+            // 设置事件监听
+            function setupEventListeners() {
+                // 卡牌选择
+                elements.cards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        if (gameState.gameOver || gameState.paused) return;
+                        
+                        const type = card.dataset.type;
+                        const cost = gameState.characterStats[type].cost;
+                        
+                        if (gameState.elixir >= cost) {
+                            // 取消之前的选择
+                            elements.cards.forEach(c => c.classList.remove('selected'));
+                            card.classList.add('selected');
+                            gameState.selectedCard = type;
+                        }
+                    });
+                });
+                
+                // 游戏板点击（放置角色）
+                elements.gameBoard.addEventListener('click', (e) => {
+                    if (gameState.gameOver || gameState.paused || !gameState.selectedCard) return;
+                    
+                    const rect = elements.gameBoard.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // 只能放置在下半部分
+                    if (y > 290 && gameState.playerCharacters.length < gameState.maxPlayerUnits) {
+                        // 检查碰撞
+                        if (!checkCharacterCollision(x, y)) {
+                            placeCharacter(gameState.selectedCard, x, y);
+                        }
+                    }
+                });
+                
+                // 重新开始按钮
+                elements.restartButton.addEventListener('click', () => {
+                    elements.gameMessage.style.display = 'none';
+                    resetGame();
+                });
+                
+                // 返回关卡选择按钮
+                elements.backToLevelsButton.addEventListener('click', backToLevels);
+                elements.backToLevelsUpgrade.addEventListener('click', backToLevels);
+                elements.backToLevelsNext.addEventListener('click', backToLevels);
+                
+                // 升级选项
+                elements.levelUpOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        const type = option.dataset.type;
+                        upgradeCharacter(type);
+                    });
+                });
+                
+                // 关闭教程
+                elements.tutorialClose.addEventListener('click', () => {
+                    elements.tutorial.style.display = 'none';
+                    gameState.tutorialClosed = true;
+                    localStorage.setItem('tutorialClosed', 'true');
+                });
+                
+                // 召回按钮
+                elements.recallButton.addEventListener('click', recallCharacter);
+                
+                // 角色选择
+                elements.gameBoard.addEventListener('click', (e) => {
+                    if (gameState.gameOver || gameState.paused) return;
+                    
+                    const rect = elements.gameBoard.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // 检查是否点击了玩家角色
+                    for (const char of gameState.playerCharacters) {
+                        const dx = x - char.x;
+                        const dy = y - char.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 30) {
+                            gameState.selectedCharacter = char;
+                            elements.recallButton.style.display = 'block';
+                            elements.recallButton.style.left = `${char.x - 40}px`;
+                            elements.recallButton.style.top = `${char.y - 70}px`;
+                            return;
+                        }
+                    }
+                    
+                    // 检查是否点击了敌人
+                    for (const enemy of gameState.enemyCharacters) {
+                        const dx = x - enemy.x;
+                        const dy = y - enemy.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 30) {
+                            // 显示敌人信息
+                            showEnemyInfo(enemy);
+                            return;
+                        }
+                    }
+                    
+                    // 点击其他地方隐藏召回按钮和敌人信息
+                    elements.recallButton.style.display = 'none';
+                    elements.enemyInfo.style.display = 'none';
+                    gameState.selectedCharacter = null;
+                });
+                
+                // 关卡选择按钮
+                elements.levelButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const level = button.dataset.level;
+                        startLevel(level);
+                    });
+                });
+                
+                // 暂停按钮
+                elements.pauseButton.addEventListener('click', togglePause);
+                
+                // 卡片点击（暂停状态下）
+                elements.cards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        if (gameState.paused) {
+                            const type = card.dataset.type;
+                            showCardDetail(type);
+                        }
+                    });
+                });
+                
+                // 下一关按钮
+                elements.nextLevelButton.addEventListener('click', () => {
+                    const nextLevel = (gameState.currentLevel === 'endless') ? 'endless' : parseInt(gameState.currentLevel) + 1;
+                    if (nextLevel <= 5 || nextLevel === 'endless') {
+                        startLevel(nextLevel);
+                    } else {
+                        // 已经是最后一关
+                        elements.nextLevelContainer.style.display = 'none';
+                        elements.gameMessage.style.display = 'block';
+                        elements.messageTitle.textContent = "恭喜通关！";
+                        elements.messageContent.textContent = "你已完成所有关卡！";
+                    }
+                });
+                
+                // 重新挑战按钮
+                elements.replayLevelButton.addEventListener('click', () => {
+                    elements.nextLevelContainer.style.display = 'none';
+                    resetGame();
+                });
+                
+                // 关闭详情面板
+                elements.closeDetail.addEventListener('click', () => {
+                    elements.cardDetail.style.display = 'none';
+                });
+                
+                // 关闭敌人信息面板
+                elements.closeEnemyInfo.addEventListener('click', () => {
+                    elements.enemyInfo.style.display = 'none';
+                });
+                
+                // 排行榜按钮
+                elements.leaderboardButton.addEventListener('click', showLeaderboard);
+                elements.closeLeaderboard.addEventListener('click', () => {
+                    elements.leaderboard.style.display = 'none';
+                });
+                
+                // 法力注入技能
+                elements.elixirBoostButton.addEventListener('click', () => {
+                    if (gameState.gold >= 50) {
+                        gameState.gold -= 50;
+                        saveGameData();
+                        gameState.elixir = Math.min(gameState.maxElixir, gameState.elixir + 5);
+                        updateUI();
+                        
+                        // 创建特效
+                        createHealEffect(210, 560, "+5法力");
+                        createEmotion(210, 560, 'confident');
+                    }
+                });
+                
+                // 碎片收集器按钮
+                elements.toggleFragments.addEventListener('click', () => {
+                    elements.fragmentCollector.style.display = 
+                        elements.fragmentCollector.style.display === 'none' ? 'flex' : 'none';
+                });
+            }
+
+            // 显示排行榜
+            function showLeaderboard() {
+                elements.leaderboard.style.display = 'block';
+                updateLeaderboard();
+            }
+
+            // 更新排行榜
+            function updateLeaderboard() {
+                const leaderboardData = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+                elements.leaderboardList.innerHTML = '<li class="leaderboard-item leaderboard-header"><span class="leaderboard-rank">#</span><span class="leaderboard-time">时间</span><span class="leaderboard-kills">击杀</span><span class="leaderboard-date">日期</span></li>';
+                
+                // 只显示前10名
+                leaderboardData.slice(0, 10).forEach((entry, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'leaderboard-item';
+                    
+                    const minutes = Math.floor(entry.time / 60);
+                    const seconds = Math.floor(entry.time % 60);
+                    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    const date = new Date(entry.timestamp).toLocaleDateString();
+                    
+                    li.innerHTML = `
+                        <span class="leaderboard-rank">${index + 1}</span>
+                        <span class="leaderboard-time">${timeString}</span>
+                        <span class="leaderboard-kills">${entry.kills}</span>
+                        <span class="leaderboard-date">${date}</span>
+                    `;
+                    
+                    elements.leaderboardList.appendChild(li);
+                });
+            }
+
+            // 保存排行榜数据
+            function saveToLeaderboard() {
+                if (!gameState.endlessMode) return;
+                
+                const leaderboardData = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+                const newEntry = {
+                    time: Math.floor(gameState.gameTime),
+                    kills: gameState.killCount,
+                    timestamp: Date.now(),
+                    fragments: gameState.currentRunFragments.length
+                };
+                
+                leaderboardData.push(newEntry);
+                
+                // 按时间降序排序
+                leaderboardData.sort((a, b) => b.time - a.time);
+                
+                // 只保留前20名
+                if (leaderboardData.length > 20) {
+                    leaderboardData.length = 20;
+                }
+                
+                localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
+            }
+
+            // 显示卡片详情
+            function showCardDetail(type) {
+                const stats = gameState.characterStats[type];
+                const level = gameState.characterLevels[type];
+
+                // 更新详情面板
+                elements.detailLevel.textContent = level;
+                elements.detailHealth.textContent = stats.health;
+                elements.detailDamage.textContent = stats.damage;
+                elements.detailRange.textContent = stats.range;
+                elements.detailAttackSpeed.textContent = (stats.attackSpeed / 1000).toFixed(1) + '秒';
+                elements.detailCost.textContent = stats.cost;
+                elements.detailFragments.textContent = `${gameState.fragments[type]}/5`;
+                elements.damageType.textContent =
+                    stats.damageType === 'physical' ? '物理' :
+                    stats.damageType === 'magic' ? '法术' : '混合';
+
+                // 更新技能描述
+                let skillDesc = '';
+                switch(type) {
+                    case 'warrior':
+                        skillDesc = '嘲讽+反弹伤害';
+                        break;
+                    case 'archer':
+                        skillDesc = '强力箭(2倍伤害)';
+                        break;
+                    case 'mage':
+                        skillDesc = '范围伤害';
+                        break;
+                    case 'blade':
+                        skillDesc = '冲刺攻击(1.5倍伤害)';
+                        break;
+                    case 'paladin':
+                        skillDesc = '圣光治疗';
+                        break;
+                }
+                elements.detailSkill.textContent = skillDesc;
+
+                // 更新图标
+                const icon = elements.cardDetail.querySelector('.detail-icon i');
+                icon.className = `fas fa-${getCharacterIcon(type)}`;
+
+                // 更新标题
+                const title = elements.cardDetail.querySelector('.detail-info h3');
+                switch(type) {
+                    case 'warrior': title.textContent = '圣盾战士'; break;
+                    case 'archer': title.textContent = '精灵射手'; break;
+                    case 'mage': title.textContent = '奥术法师'; break;
+                    case 'blade': title.textContent = '影刃刺客'; break;
+                    case 'paladin': title.textContent = '神圣骑士'; break;
+                }
+
+                // 添加等级边框
+                elements.cardDetail.classList.remove('level-1', 'level-2', 'level-3', 'level-4', 'level-5', 'level-6');
+                elements.cardDetail.classList.add(`level-${level}`);
+
+                // 显示面板
+                elements.cardDetail.style.display = 'block';
+            }
+
+            // 显示敌人信息
+            function showEnemyInfo(enemy) {
+                elements.enemyTypeName.textContent =
+                    enemy.type === 'boss' ? 'Boss' :
+                    enemy.type === 'elite' ? '精英敌人' :
+                    enemy.type === 'tank' ? '坦克敌人' :
+                    enemy.type === 'speedy' ? '快速敌人' :
+                    enemy.type === 'flyer' ? '飞行敌人' :
+                    enemy.type === 'magic-immune' ? '法术免疫怪' :
+                    enemy.type === 'physical-immune' ? '物理免疫怪' : '普通敌人';
+
+                elements.enemyInfoHealth.textContent = enemy.health;
+                elements.enemyInfoDamage.textContent = enemy.damage;
+                elements.enemyInfoRange.textContent = enemy.attackRange;
+
+                // 更新抗性信息
+                if (enemy.type === 'magic-immune') {
+                    elements.enemyResistance.textContent = '法术伤害减半';
+                } else if (enemy.type === 'physical-immune') {
+                    elements.enemyResistance.textContent = '物理伤害减半';
+                } else {
+                    elements.enemyResistance.textContent = '无';
+                }
+
+                // 更新图标
+                const icon = elements.enemyInfo.querySelector('.enemy-icon i');
+                if (enemy.type === 'boss') {
+                    icon.className = 'fas fa-dragon';
+                } else if (enemy.type === 'elite') {
+                    icon.className = 'fas fa-skull-crossbones';
+                } else if (enemy.type === 'tank') {
+                    icon.className = 'fas fa-shield-alt';
+                } else if (enemy.type === 'speedy') {
+                    icon.className = 'fas fa-bolt';
+                } else if (enemy.type === 'flyer') {
+                    icon.className = 'fas fa-dove';
+                } else if (enemy.type === 'magic-immune') {
+                    icon.className = 'fas fa-hat-wizard';
+                } else if (enemy.type === 'physical-immune') {
+                    icon.className = 'fas fa-shield-alt';
+                } else {
+                    icon.className = 'fas fa-skull';
+                }
+
+                elements.enemyInfo.style.display = 'block';
+            }
+
+            // 切换暂停状态
+            function togglePause() {
+                gameState.paused = !gameState.paused;
+                const icon = elements.pauseButton.querySelector('i');
+                
+                if (gameState.paused) {
+                    icon.className = 'fas fa-play';
+                    elements.timerDisplay.textContent = '暂停中';
+                } else {
+                    icon.className = 'fas fa-pause';
+                    // 恢复计时器显示
+                    if (gameState.endlessMode) {
+                        const minutes = Math.floor(gameState.gameTime / 60);
+                        const seconds = Math.floor(gameState.gameTime % 60);
+                        elements.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    } else {
+                        const remainingTime = Math.max(0, gameState.victoryTime - gameState.gameTime);
+                        const minutes = Math.floor(remainingTime / 60);
+                        const seconds = Math.floor(remainingTime % 60);
+                        elements.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                }
+                
+                // 隐藏详情面板
+                elements.cardDetail.style.display = 'none';
+                elements.enemyInfo.style.display = 'none';
+            }
+
+            // 召回角色
+            function recallCharacter() {
+                if (gameState.selectedCharacter) {
+                    const char = gameState.selectedCharacter;
+                    const charEl = document.querySelector(`.player-character[data-id="${char.id}"]`);
+                    
+                    // 返还部分法力值
+                    gameState.elixir += Math.floor(gameState.characterStats[char.type].cost * 0.35);
+                    
+                    // 从数组中移除
+                    gameState.playerCharacters = gameState.playerCharacters.filter(c => c.id !== char.id);
+                    
+                    // 移除DOM元素
+                    if (charEl) charEl.remove();
+                    
+                    // 隐藏召回按钮
+                    elements.recallButton.style.display = 'none';
+                    gameState.selectedCharacter = null;
+                    
+                    updateUI();
+                    
+                    // 显示疲惫表情
+                    createEmotion(char.x, char.y, 'tired');
+                }
+            }
+
+            // 放置角色
+            function placeCharacter(type, x, y) {
+                const stats = gameState.characterStats[type];
+                
+                if (gameState.elixir < stats.cost || gameState.playerCharacters.length >= gameState.maxPlayerUnits) return;
+                
+                gameState.elixir -= stats.cost;
+                
+                const character = {
+                    id: Date.now(),
+                    type: type,
+                    x: x,
+                    y: y,
+                    health: stats.health,
+                    maxHealth: stats.health,
+                    damage: stats.damage,
+                    range: stats.range,
+                    attackSpeed: stats.attackSpeed,
+                    healPower: stats.healPower,
+                    speed: stats.speed,
+                    damageType: stats.damageType,
+                    lastAttackTime: 0,
+                    lastHealTime: 0,
+                    lastSkillTime: 0,
+                    lastEmotionTime: 0,
+                    skillCooldown: type === 'warrior' ? 3000 : 
+                                   type === 'archer' ? 8000 : 
+                                   type === 'blade' ? 5000 : 
+                                   type === 'paladin' ? 2000 : 0,
+                    target: null,
+                    moving: false,
+                    nextAttackDouble: false,
+                    reflectDamage: false
+                };
+                
+                gameState.playerCharacters.push(character);
+                
+                // 创建角色元素
+                const charEl = document.createElement('div');
+                charEl.className = `character player-character ${type}`;
+                charEl.style.left = `${character.x - 25}px`;
+                charEl.style.top = `${character.y - 25}px`;
+                charEl.innerHTML = `
+                    <i class="fas fa-${getCharacterIcon(type)}"></i>
+                    <div class="character-health">
+                        <div class="health-fill-character" style="width:100%"></div>
+                    </div>
+                    <div class="damage-type ${
+                        stats.damageType === 'physical' ? 'physical-damage' : 
+                        stats.damageType === 'magic' ? 'magic-damage' : 'mixed-damage'
+                    }">
+                        ${stats.damageType === 'physical' ? '物理' : 
+                          stats.damageType === 'magic' ? '法术' : '混合'}
+                    </div>
+                `;
+                charEl.dataset.id = character.id;
+                elements.gameBoard.appendChild(charEl);
+                
+                // 显示自豪表情
+                createEmotion(character.x, character.y, 'proud');
+                
+                // 取消选择
+                elements.cards.forEach(card => card.classList.remove('selected'));
+                gameState.selectedCard = null;
+                
+                updateUI();
+            }
+
+            // 生成敌人波次
+            function spawnEnemyWave() {
+                if (gameState.gameOver || gameState.paused) return;
+                
+                gameState.enemyWaveCount++;
+                gameState.waveCount++;
+                
+                // 显示波次提示
+                const waveAlert = document.createElement('div');
+                waveAlert.className = 'wave-alert';
+                waveAlert.textContent = `第 ${gameState.waveCount} 波敌人来袭!`;
+                elements.gameBoard.appendChild(waveAlert);
+                
+                // 自动移除提示
+                setTimeout(() => {
+                    if (waveAlert.parentNode) {
+                        waveAlert.parentNode.removeChild(waveAlert);
+                    }
+                }, 1500);
+                
+                // 根据关卡调整难度
+                let normalCount = 2;
+                let eliteCount = 0;
+                let bossCount = 0;
+                let tankCount = 0;
+                let speedyCount = 0;
+                let flyerCount = 0;
+                let magicImmuneCount = 0;
+                let physicalImmuneCount = 0;
+                
+                // 关卡难度系数
+                // 处理无尽模式的难度系数
+                const levelMultiplier = gameState.currentLevel === 'endless' ? 2 : 1 + (parseInt(gameState.currentLevel) - 1) * 0.3;
+                
+                // 波次难度系数（每波增加）
+                const waveMultiplier = Math.min(1 + (gameState.waveCount - 1) * 0.3, 5);
+                
+                switch(gameState.currentLevel) {
+                    case "1":
+                        normalCount = Math.round(2 * waveMultiplier);
+                        break;
+                    case "2":
+                        normalCount = Math.round(2 * waveMultiplier);
+                        eliteCount = Math.round(1 * waveMultiplier);
+                        break;
+                    case "3":
+                        normalCount = Math.round(2 * waveMultiplier);
+                        eliteCount = Math.round(2 * waveMultiplier);
+                        bossCount = Math.round(1 * waveMultiplier);
+                        tankCount = Math.round(1 * waveMultiplier);
+                        break;
+                    case "4":
+                    case "5":
+                    case "endless":
+                        normalCount = Math.round(3 * waveMultiplier);
+                        eliteCount = Math.round(2 * waveMultiplier);
+                        bossCount = Math.round(1 * waveMultiplier);
+                        tankCount = Math.round(1 * waveMultiplier);
+                        speedyCount = Math.round(2 * waveMultiplier);
+                        flyerCount = Math.round(1 * waveMultiplier);
+                        magicImmuneCount = Math.round(1 * waveMultiplier);
+                        physicalImmuneCount = Math.round(1 * waveMultiplier);
+                        break;
+                }
+                
+                // 生成普通敌人
+                for (let i = 0; i < normalCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('normal');
+                    }, i * 2000);
+                }
+                
+                // 生成精英敌人
+                for (let i = 0; i < eliteCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('elite');
+                    }, (i + normalCount) * 2000);
+                }
+                
+                // 生成Boss
+                for (let i = 0; i < bossCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemy('boss', 210, 60);
+                    }, (i + normalCount + eliteCount) * 2000);
+                }
+                
+                // 生成坦克敌人
+                for (let i = 0; i < tankCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('tank');
+                    }, (i + normalCount + eliteCount + bossCount) * 2000);
+                }
+                
+                // 生成快速敌人
+                for (let i = 0; i < speedyCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('speedy');
+                    }, (i + normalCount + eliteCount + bossCount + tankCount) * 2000);
+                }
+                
+                // 生成飞行敌人
+                for (let i = 0; i < flyerCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('flyer');
+                    }, (i + normalCount + eliteCount + bossCount + tankCount + speedyCount) * 2000);
+                }
+                
+                // 生成法术免疫怪
+                for (let i = 0; i < magicImmuneCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('magic-immune');
+                    }, (i + normalCount + eliteCount + bossCount + tankCount + speedyCount + flyerCount) * 2000);
+                }
+                
+                // 生成物理免疫怪
+                for (let i = 0; i < physicalImmuneCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemyAtRandomPosition('physical-immune');
+                    }, (i + normalCount + eliteCount + bossCount + tankCount + speedyCount + flyerCount + magicImmuneCount) * 2000);
+                }
+                
+                // 下一波（30秒后）
+                gameState.nextWaveTimer = Date.now() + gameState.waveInterval;
+
+            // 检查是否所有敌人已被消灭
+            if (gameState.enemyCharacters.length === 0 && !gameState.gameOver) {
+                gameState.nextWaveTimer = Date.now() + 5000; // 5秒后生成下一波
+            }
+            }
+            
+            // 在随机位置生成敌人
+            function spawnEnemyAtRandomPosition(type) {
+                let x, y;
+                let validPosition = false;
+                
+                while (!validPosition) {
+                    x = Math.random() * 350 + 35;
+                    y = 60;
+                    if (!checkCharacterCollision(x, y)) {
+                        validPosition = true;
+                    }
+                }
+                
+                spawnEnemy(type, x, y);
+            }
+
+            // 生成敌人
+            function spawnEnemy(type, x, y) {
+                if (gameState.gameOver || gameState.paused) return;
+                
+                let health, damage, speed, attackRange, attackSpeed;
+                
+                // 关卡难度系数
+                // 处理无尽模式的难度系数
+                const levelMultiplier = gameState.currentLevel === 'endless' ? 2 : 1 + (parseInt(gameState.currentLevel) - 1) * 0.3;
+                
+                // 波次难度系数
+                const waveMultiplier = Math.min(1 + (gameState.waveCount - 1) * 0.2, 3);
+                
+                switch (type) {
+                    case 'normal':
+                        health = Math.round(120 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(15 * levelMultiplier * waveMultiplier);
+                        speed = 0.45;
+                        attackRange = 85;
+                        attackSpeed = 1900;
+                        break;
+                    case 'elite':
+                        health = Math.round(250 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(25 * levelMultiplier * waveMultiplier);
+                        speed = 0.35;
+                        attackRange = 105;
+                        attackSpeed = 1400;
+                        break;
+                    case 'boss':
+                        health = Math.round(600 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(35 * levelMultiplier * waveMultiplier);
+                        speed = 0.25;
+                        attackRange = 130;
+                        attackSpeed = 900;
+                        break;
+                    case 'tank':
+                        health = Math.round(400 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(20 * levelMultiplier * waveMultiplier);
+                        speed = 0.2;
+                        attackRange = 100;
+                        attackSpeed = 2000;
+                        break;
+                    case 'speedy':
+                        health = Math.round(100 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(10 * levelMultiplier * waveMultiplier);
+                        speed = 0.7;
+                        attackRange = 70;
+                        attackSpeed = 800;
+                        break;
+                    case 'flyer':
+                        health = Math.round(150 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(30 * levelMultiplier * waveMultiplier);
+                        speed = 0.4;
+                        attackRange = 90;
+                        attackSpeed = 1200;
+                        break;
+                    case 'magic-immune':
+                        health = Math.round(200 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(20 * levelMultiplier * waveMultiplier);
+                        speed = 0.3;
+                        attackRange = 95;
+                        attackSpeed = 1500;
+                        break;
+                    case 'physical-immune':
+                        health = Math.round(180 * levelMultiplier * waveMultiplier);
+                        damage = Math.round(25 * levelMultiplier * waveMultiplier);
+                        speed = 0.35;
+                        attackRange = 90;
+                        attackSpeed = 1400;
+                        break;
+                }
+                
+                const enemy = {
+                    id: Date.now(),
+                    type: type,
+                    x: x,
+                    y: y,
+                    health: health,
+                    maxHealth: health,
+                    damage: damage,
+                    speed: speed,
+                    attackRange: attackRange,
+                    attackSpeed: attackSpeed,
+                    lastAttackTime: 0,
+                    lastEmotionTime: 0,
+                    target: null,
+                    moving: true
+                };
+                
+                gameState.enemyCharacters.push(enemy);
+                
+                // 创建敌人元素
+                const enemyEl = document.createElement('div');
+                enemyEl.className = `character enemy-character enemy ${type}`;
+                enemyEl.style.left = `${x - 25}px`;
+                enemyEl.style.top = `${y - 25}px`;
+                enemyEl.innerHTML = `
+                    <i class="fas fa-${getEnemyIcon(type)}"></i>
+                    <div class="character-health">
+                        <div class="health-fill-character" style="width:100%"></div>
+                    </div>
+                `;
+                enemyEl.dataset.id = enemy.id;
+                elements.gameBoard.appendChild(enemyEl);
+                
+                // 显示挑衅表情
+                createEmotion(x, y, 'angry');
+            }
+
+            // 升级角色
+            function upgradeCharacter(type) {
+                const maxLevel = gameState.maxLevels[gameState.currentLevel];
+                const currentLevel = gameState.characterLevels[type];
+                
+                if (currentLevel >= maxLevel) {
+                    alert(`当前关卡最多只能升级到${maxLevel}级！`);
+                    return;
+                }
+                
+                if (gameState.gold >= 50) {
+                    gameState.gold -= 50;
+                    gameState.characterLevels[type]++;
+                    
+                    // 提升属性
+                    gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
+                    gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
+                    
+                    if (type === 'paladin') {
+                        gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
+                    }
+                    
+                    // 更新角色等级显示
+                    document.querySelectorAll(`.card[data-type="${type}"] .card-level`).forEach(el => {
+                        el.textContent = gameState.characterLevels[type];
+                    });
+                    
+                    // 更新卡片边框
+                    document.querySelectorAll(`.card[data-type="${type}"]`).forEach(card => {
+                        card.className = `card level-${gameState.characterLevels[type]}`;
+                    });
+                    
+                    updateUI();
+                    
+                    // 保存游戏数据
+                    saveGameData();
+                    
+                    // 隐藏升级界面
+                    elements.levelUpContainer.style.display = 'none';
+                    
+                    // 显示下一关选择界面
+                    elements.nextLevelContainer.style.display = 'block';
+                    
+                    // 显示兴奋表情
+                    createEmotion(210, 560, 'amazed');
+                    
+                    // 标记关卡完成
+                    if (!gameState.completedLevels.includes(gameState.currentLevel)) {
+                        gameState.completedLevels.push(gameState.currentLevel);
+                        saveGameData();
+                        // 更新关卡选择界面
+                        updateLevelSelector();
+                    }
+                }
+            }
+            
+            // 升级角色到6级（使用碎片）
+            function upgradeToLevel6(type) {
+                // 检查当前等级是否为5级
+                if (gameState.characterLevels[type] !== 5) {
+                    alert('该职业尚未达到5级，无法使用碎片升级！');
+                    return;
+                }
+                
+                if (gameState.fragments[type] < 5) {
+                    alert('碎片不足！');
+                    return;
+                }
+                
+                gameState.fragments[type] -= 5;
+                gameState.characterLevels[type] = 6;
+                
+                // 提升属性
+                gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
+                gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
+                
+                if (type === 'paladin') {
+                    gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
+                }
+                
+                // 更新角色等级显示
+                document.querySelectorAll(`.card[data-type="${type}"] .card-level`).forEach(el => {
+                    el.textContent = gameState.characterLevels[type];
+                });
+                
+                // 更新卡片边框
+                document.querySelectorAll(`.card[data-type="${type}"]`).forEach(card => {
+                    card.className = `card level-${gameState.characterLevels[type]}`;
+                });
+                
+                updateUI();
+                saveGameData();
+                
+                // 显示兴奋表情
+                createEmotion(210, 560, 'amazed');
+            }
+
+            // 游戏主循环
+            function startGameLoop() {
+                let lastTime = 0;
+                let lastElixirTime = 0;
+                let lastFragmentCheck = 0;
+                
+                function gameLoop(timestamp) {
+                    try {
+                        const deltaTime = timestamp - lastTime;
+                        lastTime = timestamp;
+                        
+                        // 更新游戏时间（如果未暂停）
+                        if (!gameState.paused) {
+                            gameState.gameTime += deltaTime / 1000;
+                        }
+                        
+                        if (!gameState.gameOver) {
+                            // 恢复法力值（如果未暂停）
+                            if (!gameState.paused && timestamp - lastElixirTime > 1000) {
+                                gameState.elixir = Math.min(gameState.maxElixir, gameState.elixir + 0.6);
+                                lastElixirTime = timestamp;
+                            }
+                            
+                            // 检查是否该生成下一波敌人
+                            if (gameState.nextWaveTimer && timestamp > gameState.nextWaveTimer) {
+                                spawnEnemyWave();
+                            }
+                            
+                            // 检查碎片奖励（每击败50个敌人）
+                            if (gameState.endlessMode && gameState.killCount >= gameState.lastFragmentKill + 50) {
+                                gameState.lastFragmentKill = gameState.killCount;
+                                awardRandomFragment();
+                            }
+                            
+                            // 更新角色（如果未暂停）
+                            if (!gameState.paused) {
+                                updateCharacters(deltaTime, timestamp);
+                                
+                                // 更新抛射物
+                                updateProjectiles(deltaTime);
+                                
+                                // 更新伤害效果
+                                updateDamageEffects(deltaTime);
+                                
+                                // 更新治疗效果
+                                updateHealEffects(deltaTime);
+                                
+                                // 更新攻击特效
+                                updateAttackEffects(deltaTime);
+                                
+                                // 更新技能特效
+                                updateSkillEffects(deltaTime);
+                                
+                                // 更新UI
+                                updateUI();
+                                
+                                // 检查游戏状态
+                                checkGameState();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('游戏循环错误:', error);
+                        // 显示错误信息给玩家
+                        const errorEl = document.createElement('div');
+                        errorEl.className = 'game-error';
+                        errorEl.textContent = '游戏发生错误: ' + error.message;
+                        errorEl.style.position = 'absolute';
+                        errorEl.style.top = '50%';
+                        errorEl.style.left = '50%';
+                        errorEl.style.transform = 'translate(-50%, -50%)';
+                        errorEl.style.backgroundColor = 'rgba(231, 76, 60, 0.9)';
+                        errorEl.style.color = 'white';
+                        errorEl.style.padding = '20px';
+                        errorEl.style.borderRadius = '5px';
+                        errorEl.style.zIndex = '1000';
+                        if (elements.gameBoard) {
+                            elements.gameBoard.appendChild(errorEl);
+                            // 3秒后自动移除错误提示
+                            setTimeout(() => {
+                                if (errorEl.parentNode) {
+                                    errorEl.parentNode.removeChild(errorEl);
+                                }
+                            }, 3000);
+                        }
+                    } finally {
+                        requestAnimationFrame(gameLoop);
+                    }
+                }
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // 奖励随机碎片
+            function awardRandomFragment() {
+                // 获取所有职业
+                const types = ['warrior', 'archer', 'mage', 'blade', 'paladin'];
+                // 过滤出碎片未满的职业（<5）
+                const availableTypes = types.filter(type => gameState.fragments[type] < 5);
+                
+                if (availableTypes.length === 0) {
+                    return; // 所有职业碎片已满
+                }
+                
+                // 随机选择一个职业
+                const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                
+                // 增加碎片
+                gameState.fragments[randomType]++;
+                gameState.currentRunFragments.push(randomType);
+                
+                // 显示获得碎片提示
+                const fragmentAlert = document.createElement('div');
+                fragmentAlert.className = 'fragment-alert';
+                fragmentAlert.textContent = `获得${getCharacterName(randomType)}碎片!`;
+                elements.gameBoard.appendChild(fragmentAlert);
+                
+                // 自动移除提示
+                setTimeout(() => {
+                    if (fragmentAlert.parentNode) {
+                        fragmentAlert.parentNode.removeChild(fragmentAlert);
+                    }
+                }, 1500);
+                
+                // 显示兴奋表情
+                createEmotion(210, 560, 'amazed');
+                
+                // 更新UI
+                updateUI();
+                saveGameData();
+            }
+            
+            // 获取角色名称
+            function getCharacterName(type) {
+                switch(type) {
+                    case 'warrior': return '圣盾战士';
+                    case 'archer': return '精灵射手';
+                    case 'mage': return '奥术法师';
+                    case 'blade': return '影刃刺客';
+                    case 'paladin': return '神圣骑士';
+                }
+            }
+
+            // 计算实际伤害（考虑抗性）
+            function calculateDamage(damage, damageType, enemyType) {
+                // 刺客的混合伤害无视所有抗性
+                if (damageType === 'mixed') {
+                    return damage;
+                }
+                
+                // 物理免疫怪：法术伤害减半
+                if (enemyType === 'physical-immune') {
+                    if (damageType === 'magic') return damage * 0.5;
+                    if (damageType === 'physical') return damage * 0.5;
+                }
+                
+                // 法术免疫怪：物理伤害减半
+                if (enemyType === 'magic-immune') {
+                    if (damageType === 'physical') return damage * 0.5;
+                    if (damageType === 'magic') return damage * 0.5;
+                }
+                
+                return damage;
+            }
+
+            // 更新角色
+            function updateCharacters(deltaTime, timestamp) {
+                // 更新玩家角色
+                gameState.playerCharacters.forEach((character) => {
+                    // 更新角色位置
+                    const charEl = document.querySelector(`.player-character[data-id="${character.id}"]`);
+                    if (charEl) {
+                        charEl.style.left = `${character.x - 25}px`;
+                        charEl.style.top = `${character.y - 25}px`;
+                    }
+                    
+                    // 圣骑士治疗逻辑
+                    if (character.type === 'paladin' && timestamp - character.lastHealTime > 3000) {
+                        character.lastHealTime = timestamp;
+                        
+                        // 寻找需要治疗的友军
+                        gameState.playerCharacters.forEach(friend => {
+                            if (friend.id !== character.id && friend.health < friend.maxHealth) {
+                                const dx = character.x - friend.x;
+                                const dy = character.y - friend.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance <= character.range) {
+                                    // 治疗友军
+                                    friend.health = Math.min(friend.maxHealth, friend.health + character.healPower);
+                                    
+                                    // 更新血条
+                                    const friendEl = document.querySelector(`.player-character[data-id="${friend.id}"]`);
+                                    if (friendEl) {
+                                        const healthBar = friendEl.querySelector('.health-fill-character');
+                                        if (healthBar) {
+                                            healthBar.style.width = `${(friend.health / friend.maxHealth) * 100}%`;
+                                        }
+                                    }
+                                    
+                                    // 创建治疗效果
+                                    createHealEffect(friend.x, friend.y, `+${character.healPower}`);
+                                    
+                                    // 创建治疗粒子
+                                    createHitParticles(friend.x, friend.y, 6, '#2ecc71');
+                                    
+                                    // 显示高兴表情
+                                    if (timestamp - friend.lastEmotionTime > 3000) {
+                                        createEmotion(friend.x, friend.y, 'happy');
+                                        friend.lastEmotionTime = timestamp;
+                                    }
+                                    
+                                    // 创建治疗特效
+                                    const healEffect = document.createElement('div');
+                                    healEffect.className = 'paladin-heal';
+                                    healEffect.style.left = `${friend.x - 20}px`;
+                                    healEffect.style.top = `${friend.y - 20}px`;
+                                    elements.gameBoard.appendChild(healEffect);
+                                    
+                                    setTimeout(() => {
+                                        if (healEffect.parentNode) {
+                                            healEffect.parentNode.removeChild(healEffect);
+                                        }
+                                    }, 1000);
+                                }
+                            }
+                        });
+                        
+                        // 创建光环特效
+                        const haloEffect = document.createElement('div');
+                        haloEffect.className = 'paladin-halo';
+                        haloEffect.style.left = `${character.x - 50}px`;
+                        haloEffect.style.top = `${character.y - 50}px`;
+                        elements.gameBoard.appendChild(haloEffect);
+                        
+                        setTimeout(() => {
+                            if (haloEffect.parentNode) {
+                                haloEffect.parentNode.removeChild(haloEffect);
+                            }
+                        }, 800);
+                    }
+                    
+                    // 角色技能触发
+                    if (character.skillCooldown > 0 && timestamp - character.lastSkillTime > character.skillCooldown) {
+                        triggerCharacterSkill(character, timestamp);
+                    }
+                    
+                    // 寻找最近的敌人
+                    if (!character.target || character.target.health <= 0) {
+                        let closestEnemy = null;
+                        let minDistance = Infinity;
+                        
+                        gameState.enemyCharacters.forEach(enemy => {
+                            if (enemy.health > 0) {
+                                const dx = character.x - enemy.x;
+                                const dy = character.y - enemy.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance < minDistance) {
+                                    minDistance = distance;
+                                    closestEnemy = enemy;
+                                }
+                            }
+                        });
+                        
+                        character.target = closestEnemy;
+                    }
+                    
+                    // 如果有目标
+                    if (character.target) {
+                        const dx = character.x - character.target.x;
+                        const dy = character.y - character.target.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance <= character.range) {
+                            // 在射程内，攻击
+                            character.moving = false;
+                            
+                            if (timestamp - character.lastAttackTime > character.attackSpeed) {
+                                character.lastAttackTime = timestamp;
+                                
+                                // 创建抛射物或攻击特效
+                                if (character.type === 'warrior' || character.type === 'paladin') {
+                                    createAttackEffect(character.target.x, character.target.y, character.type, character.damageType);
+                                } else {
+                                    let actualDamage = character.damage;
+                                    
+                                    // 射手强力箭效果
+                                    if (character.type === 'archer' && character.nextAttackDouble) {
+                                        actualDamage *= 2;
+                                        character.nextAttackDouble = false;
+                                    }
+                                    
+                                    if (character.target && character.target.health > 0) {
+                        createProjectile(
+                            character.x, 
+                            character.y, 
+                            character.target.x, 
+                            character.target.y,
+                            actualDamage,
+                            character.type,
+                            character.damageType,
+                            character.nextAttackDouble
+                        );
+                    }
+                                }
+                                
+                                // 显示兴奋表情
+                                if (timestamp - character.lastEmotionTime > 3000) {
+                                    createEmotion(character.x, character.y, character.type === 'warrior' ? 'confident' : character.type === 'archer' ? 'amazed' : 'excited');
+                                    character.lastEmotionTime = timestamp;
+                                }
+                            }
+                        } else {
+                            // 不在射程内，向目标移动
+                            character.moving = true;
+                            
+                            // 计算移动方向
+                            const angle = Math.atan2(character.target.y - character.y, character.target.x - character.x);
+                            character.x += Math.cos(angle) * character.speed * (deltaTime / 16);
+                            character.y += Math.sin(angle) * character.speed * (deltaTime / 16);
+                        }
+                    }
+                });
+                
+                // 更新敌人
+                gameState.enemyCharacters.forEach((enemy, index) => {
+                    // 寻找目标（优先玩家角色）
+                    if (!enemy.target || enemy.target.health <= 0) {
+                        let closestPlayer = null;
+                        let minDistance = Infinity;
+                        
+                        gameState.playerCharacters.forEach(player => {
+                            if (player.health > 0) {
+                                const dx = enemy.x - player.x;
+                                const dy = enemy.y - player.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance < minDistance) {
+                                    minDistance = distance;
+                                    closestPlayer = player;
+                                }
+                            }
+                        });
+                        
+                        // 如果玩家角色在攻击范围内，则设为目标
+                        if (closestPlayer && minDistance <= enemy.attackRange) {
+                            enemy.target = closestPlayer;
+                            enemy.moving = false;
+                        } else {
+                            enemy.target = null;
+                            enemy.moving = true;
+                        }
+                    }
+                    
+                    // 如果目标在攻击范围内，则攻击
+                    if (enemy.target) {
+                        const dx = enemy.x - enemy.target.x;
+                        const dy = enemy.y - enemy.target.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance <= enemy.attackRange) {
+                            enemy.moving = false;
+                            
+                            if (timestamp - enemy.lastAttackTime > enemy.attackSpeed) {
+                                enemy.lastAttackTime = timestamp;
+                                
+                                // 添加攻击动画
+                                const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                                if (enemyEl) {
+                                    enemyEl.classList.add('attack-animation');
+                                    setTimeout(() => { const el = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`); if (el) el.classList.remove('attack-animation'); }, 300);
+                                }
+                                
+                                // 对目标造成伤害
+                                const damage = enemy.damage;
+                                enemy.target.health -= damage;
+                                
+                                // 显示痛苦表情
+                                if (timestamp - enemy.target.lastEmotionTime > 3000) {
+                                    if (enemy.target.health / enemy.target.maxHealth < 0.3) {
+                                        createEmotion(enemy.target.x, enemy.target.y, 'annoyed');
+                                    } else {
+                                        createEmotion(enemy.target.x, enemy.target.y, 'surprised');
+                                    }
+                                    enemy.target.lastEmotionTime = timestamp;
+                                }
+                                
+                                // 处理战士反弹伤害
+                                if (enemy.target.type === 'warrior' && enemy.target.reflectDamage) {
+                                    const reflectDamage = damage * 0.2;
+                                    enemy.health -= reflectDamage;
+                                    
+                                    // 创建反弹伤害效果
+                                    createDamageEffect(enemy.x, enemy.y, `-${Math.round(reflectDamage)}`, '#3498db');
+                                    
+                                    // 创建反弹特效
+                                    const reflectEl = document.createElement('div');
+                                    reflectEl.className = 'reflect-effect';
+                                    reflectEl.style.left = `${enemy.x - 30}px`;
+                                    reflectEl.style.top = `${enemy.y - 30}px`;
+                                    elements.gameBoard.appendChild(reflectEl);
+                                    
+                                    setTimeout(() => {
+                                        if (reflectEl.parentNode) {
+                                            reflectEl.parentNode.removeChild(reflectEl);
+                                        }
+                                    }, 500);
+                                    
+                                    // 显示自信表情
+                                    if (timestamp - enemy.target.lastEmotionTime > 3000) {
+                                        createEmotion(enemy.target.x, enemy.target.y, 'confident');
+                                        enemy.target.lastEmotionTime = timestamp;
+                                    }
+                                }
+                                
+                                // 处理骑士治疗
+                                if (enemy.target.type === 'paladin' && timestamp - enemy.target.lastSkillTime > enemy.target.skillCooldown) {
+                                    // 骑士自身治疗
+                                    enemy.target.health = Math.min(enemy.target.maxHealth, enemy.target.health + damage * 0.5);
+                                    
+                                    // 附近友军治疗
+                                    gameState.playerCharacters.forEach(friend => {
+                                        if (friend.id !== enemy.target.id) {
+                                            const dx = enemy.target.x - friend.x;
+                                            const dy = enemy.target.y - friend.y;
+                                            const distance = Math.sqrt(dx * dx + dy * dy);
+                                            
+                                            if (distance < 120) {
+                                                friend.health = Math.min(friend.maxHealth, friend.health + damage * 0.25);
+                                                
+                                                // 创建治疗效果
+                                                createHealEffect(friend.x, friend.y, `+${Math.round(damage * 0.25)}`);
+                                                
+                                                // 显示高兴表情
+                                                if (timestamp - friend.lastEmotionTime > 3000) {
+                                                    createEmotion(friend.x, friend.y, 'happy');
+                                                    friend.lastEmotionTime = timestamp;
+                                                }
+                                            }
+                                        }
+                                    });
+                                    
+                                    // 创建治疗特效
+                                    const holyLight = document.createElement('div');
+                                    holyLight.className = 'holy-light';
+                                    holyLight.style.left = `${enemy.target.x - 40}px`;
+                                    holyLight.style.top = `${enemy.target.y - 40}px`;
+                                    elements.gameBoard.appendChild(holyLight);
+                                    
+                                    setTimeout(() => {
+                                        if (holyLight.parentNode) {
+                                            holyLight.parentNode.removeChild(holyLight);
+                                        }
+                                    }, 800);
+                                    
+                                    enemy.target.lastSkillTime = timestamp;
+                                    
+                                    // 显示坚定表情
+                                    if (timestamp - enemy.target.lastEmotionTime > 3000) {
+                                        createEmotion(enemy.target.x, enemy.target.y, 'determined');
+                                        enemy.target.lastEmotionTime = timestamp;
+                                    }
+                                }
+                                
+                                // 创建伤害效果
+                                createDamageEffect(enemy.target.x, enemy.target.y, `-${damage}`, '#e74c3c');
+                                
+                                // 创建命中粒子效果
+                                createHitParticles(enemy.target.x, enemy.target.y, 10, '#e74c3c');
+                                
+                                // 更新血条
+                                const targetEl = document.querySelector(`.player-character[data-id="${enemy.target.id}"]`);
+                                if (targetEl) {
+                                    const healthBar = targetEl.querySelector('.health-fill-character');
+                                    if (healthBar) {
+                                        healthBar.style.width = `${(enemy.target.health / enemy.target.maxHealth) * 100}%`;
+                                    }
+                                }
+                            }
+                        } else {
+                            // 目标超出范围，继续移动
+                            enemy.moving = true;
+                        }
+                    } else {
+                        enemy.moving = true;
+                    }
+                    
+                    // 移动敌人
+                    if (enemy.moving) {
+                        enemy.y += enemy.speed * (deltaTime / 16);
+                    }
+                    
+                    // 更新位置
+                    const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                    if (enemyEl) {
+                        enemyEl.style.top = `${enemy.y}px`;
+                    }
+                    
+                    // 检查是否到达玩家基地
+                    if (enemy.y > 540) {
+                        gameState.playerHealth -= enemy.damage;
+                        enemy.health = 0;
+                        
+                        // 创建伤害效果
+                        createDamageEffect(210, 560, `-${enemy.damage}`, '#e74c3c');
+                        
+                        // 显示失败表情
+                        createEmotion(210, 560, 'defeat');
+                        
+                        // 移除敌人
+                        if (enemyEl) enemyEl.remove();
+                        gameState.enemyCharacters.splice(index, 1);
+                    }
+                });
+                
+                // 清理死亡角色
+                gameState.playerCharacters = gameState.playerCharacters.filter(character => {
+                    if (character.health <= 0) {
+                        const charEl = document.querySelector(`.player-character[data-id="${character.id}"]`);
+                        if (charEl) {
+                            // 显示悲伤表情
+                            createEmotion(character.x, character.y, 'sad');
+                            
+                            // 创建死亡特效
+                            createDeathEffect(character.x, character.y, true);
+                            charEl.remove();
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+                
+                gameState.enemyCharacters = gameState.enemyCharacters.filter(enemy => {
+                    if (enemy.health <= 0) {
+                        const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                        if (enemyEl) {
+                            // 显示悲伤表情
+                            createEmotion(enemy.x, enemy.y, 'sad');
+                            
+                            // 创建死亡特效
+                            createDeathEffect(enemy.x, enemy.y, false);
+                            enemyEl.remove();
+                        }
+                        
+                        // 增加击杀计数（无尽模式）
+                        if (gameState.endlessMode) {
+                            gameState.killCount++;
+                            elements.killCount.textContent = gameState.killCount;
+                        }
+                        
+                        // 显示胜利表情
+                        if (enemy.type === 'boss') {
+                            gameState.playerCharacters.forEach(char => {
+                                if (Date.now() - char.lastEmotionTime > 3000) {
+                                    createEmotion(char.x, char.y, 'victory');
+                                    char.lastEmotionTime = Date.now();
+                                }
+                            });
+                        }
+                        
+                        return false;
+                    }
+                    return true;
+                });
+            }
+            
+            // 触发角色技能
+            function triggerCharacterSkill(character, timestamp) {
+                character.lastSkillTime = timestamp;
+                
+                // 战士技能：嘲讽+反弹伤害
+                if (character.type === 'warrior') {
+                    // 嘲讽效果：吸引附近敌人
+                    gameState.enemyCharacters.forEach(enemy => {
+                        const dx = character.x - enemy.x;
+                        const dy = character.y - enemy.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            enemy.target = character;
+                        }
+                    });
+                    
+                    // 设置反弹伤害状态
+                    character.reflectDamage = true;
+                    
+                    // 创建嘲讽特效
+                    const tauntEl = document.createElement('div');
+                    tauntEl.className = 'taunt-halo';
+                    tauntEl.style.left = `${character.x - 60}px`;
+                    tauntEl.style.top = `${character.y - 60}px`;
+                    elements.gameBoard.appendChild(tauntEl);
+                    
+                    setTimeout(() => {
+                        if (tauntEl.parentNode) {
+                            tauntEl.parentNode.removeChild(tauntEl);
+                        }
+                    }, 1000);
+                    
+                    // 创建感叹号表情
+                    createEmotion(character.x, character.y, 'alert');
+                    
+                    // 反弹状态持续3秒
+                    setTimeout(() => {
+                        character.reflectDamage = false;
+                    }, 3000);
+                    
+                    // 显示兴奋表情
+                    if (timestamp - character.lastEmotionTime > 3000) {
+                        createEmotion(character.x, character.y, 'determined');
+                        character.lastEmotionTime = timestamp;
+                    }
+                }
+                
+                // 射手技能：强力箭（下一次攻击双倍伤害）
+                if (character.type === 'archer') {
+                    character.nextAttackDouble = true;
+                    
+                    // 创建技能特效
+                    const skillIndicator = document.createElement('div');
+                    skillIndicator.className = 'skill-indicator';
+                    skillIndicator.style.background = 'radial-gradient(circle, #ffd700, transparent)';
+                    skillIndicator.style.boxShadow = '0 0 20px #ffd700';
+                    skillIndicator.style.left = `${character.x - 30}px`;
+                    skillIndicator.style.top = `${character.y - 30}px`;
+                    elements.gameBoard.appendChild(skillIndicator);
+                    
+                    setTimeout(() => {
+                        if (skillIndicator.parentNode) {
+                            skillIndicator.parentNode.removeChild(skillIndicator);
+                        }
+                    }, 800);
+                    
+                    // 显示兴奋表情
+                    if (timestamp - character.lastEmotionTime > 3000) {
+                        createEmotion(character.x, character.y, 'amazed');
+                        character.lastEmotionTime = timestamp;
+                    }
+                }
+                
+                // 刺客技能：冲刺攻击
+                if (character.type === 'blade' && character.target) {
+                    // 创建残影
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            const shadow = document.createElement('div');
+                            shadow.className = 'blade-shadow';
+                            shadow.style.left = `${character.x - 20}px`;
+                            shadow.style.top = `${character.y - 20}px`;
+                            elements.gameBoard.appendChild(shadow);
+                            
+                            setTimeout(() => {
+                                if (shadow.parentNode) {
+                                    shadow.parentNode.removeChild(shadow);
+                                }
+                            }, 500);
+                        }, i * 100);
+                    }
+                    
+                    // 瞬间移动到目标附近
+                    const angle = Math.atan2(character.target.y - character.y, character.target.x - character.x);
+                    character.x = character.target.x - Math.cos(angle) * 40;
+                    character.y = character.target.y - Math.sin(angle) * 40;
+                    
+                    // 创建冲刺特效
+                    const dashEl = document.createElement('div');
+                    dashEl.className = 'blade-dash';
+                    dashEl.style.setProperty('--dash-width', '100px');
+                    dashEl.style.left = `${character.x}px`;
+                    dashEl.style.top = `${character.y}px`;
+                    dashEl.style.transform = `rotate(${angle}rad)`;
+                    elements.gameBoard.appendChild(dashEl);
+                    
+                    setTimeout(() => {
+                        if (dashEl.parentNode) {
+                            dashEl.parentNode.removeChild(dashEl);
+                        }
+                    }, 300);
+                    
+                    // 立即进行一次1.5倍伤害的攻击
+                    const actualDamage = character.damage * 1.5;
+                    character.target.health -= actualDamage;
+                    
+                    // 创建伤害效果
+                    createDamageEffect(character.target.x, character.target.y, `-${Math.round(actualDamage)}`, '#e74c3c');
+                    
+                    // 创建命中粒子效果
+                    createHitParticles(character.target.x, character.target.y, 15, '#e74c3c');
+                    
+                    // 重置攻击计时器
+                    character.lastAttackTime = timestamp;
+                    
+                    // 显示兴奋表情
+                    if (timestamp - character.lastEmotionTime > 3000) {
+                        createEmotion(character.x, character.y, 'excited');
+                        character.lastEmotionTime = timestamp;
+                    }
+                }
+            }
+
+            // 创建抛射物（带特效）
+            function createProjectile(startX, startY, endX, endY, damage, type, damageType, isDouble) {
+                let projectileClass = '';
+
+                // 根据角色类型设置不同的特效
+                switch (type) {
+                    case 'archer':
+                        projectileClass = isDouble ? 'archer-projectile power-shot' : 'archer-projectile';
+                        break;
+                    case 'mage':
+                        projectileClass = 'mage-projectile';
+                        break;
+                    case 'blade':
+                        projectileClass = 'blade-projectile';
+                        break;
+                    default:
+                        projectileClass = 'physical';
+                }
+
+                const projectile = {
+                    id: Date.now(),
+                    x: startX,
+                    y: startY,
+                    startX: startX,
+                    startY: startY,
+                    endX: endX,
+                    endY: endY,
+                    damage: damage,
+                    type: type,
+                    damageType: damageType,
+                    progress: 0,
+                    speed: 0.06
+                };
+
+                gameState.projectiles.push(projectile);
+
+                // 创建抛射物元素
+                const projEl = document.createElement('div');
+                projEl.className = `projectile ${projectileClass}`;
+                projEl.style.left = `${startX - 15}px`;
+                projEl.style.top = `${startY - 15}px`;
+                projEl.dataset.id = projectile.id;
+
+                // 计算角度并旋转抛射物
+                const dx = endX - startX;
+                const dy = endY - startY;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                projEl.style.transform = `rotate(${angle}deg)`;
+
+                elements.gameBoard.appendChild(projEl);
+                
+                // 为射手箭矢添加轨迹效果
+                if (type === 'archer' && Math.random() < 0.3) {
+                    const trail = document.createElement('div');
+                    trail.className = 'archer-trail';
+                    trail.style.left = `${startX - 7}px`;
+                    trail.style.top = `${startY - 7}px`;
+                    trail.style.background = isDouble ? 'rgba(255, 215, 0, 0.4)' : 'rgba(46, 204, 113, 0.4)';
+                    elements.gameBoard.appendChild(trail);
+
+                    setTimeout(() => {
+                        if (trail.parentNode) {
+                            trail.parentNode.removeChild(trail);
+                        }
+                    }, 500);
+                }
+            }
+            
+            // 创建攻击特效（战士和骑士）
+            function createAttackEffect(x, y, type, damageType) {
+                let effectClass = '';
+                if (type === 'warrior') {
+                    effectClass = 'warrior-attack';
+                } else if (type === 'paladin') {
+                    effectClass = 'paladin-attack';
+                }
+
+                const effect = {
+                    id: Date.now(),
+                    x: x,
+                    y: y,
+                    type: type,
+                    damageType: damageType,
+                    lifetime: 400
+                };
+
+                gameState.attackEffects.push(effect);
+
+                // 创建特效元素
+                const effectEl = document.createElement('div');
+                effectEl.className = effectClass;
+                effectEl.style.left = `${x - 30}px`;
+                effectEl.style.top = `${y - 30}px`;
+                effectEl.dataset.id = effect.id;
+                elements.gameBoard.appendChild(effectEl);
+            }
+
+            // 更新抛射物
+            function updateProjectiles(deltaTime) {
+                for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+                    const projectile = gameState.projectiles[i];
+                    projectile.progress += projectile.speed * (deltaTime / 16);
+
+                    if (projectile.progress >= 1) {
+                        // 抛射物到达目标
+                        const projEl = document.querySelector(`.projectile[data-id="${projectile.id}"]`);
+                        if (projEl) projEl.remove();
+                        gameState.projectiles.splice(i, 1);
+
+                        // 应用伤害
+                        gameState.enemyCharacters.forEach(enemy => {
+                            if (Math.abs(enemy.x - projectile.endX) < 40 &&
+                                Math.abs(enemy.y - projectile.endY) < 40) {
+
+                                const actualDamage = calculateDamage(projectile.damage, projectile.damageType, enemy.type);
+                                enemy.health -= actualDamage;
+
+                                // 法师减速效果 - 主目标
+                                if (projectile.type === 'mage') {
+                                    if (enemy.slowTimer) clearTimeout(enemy.slowTimer);
+                                    const originalSpeed = enemy.speed;
+                                    enemy.speed *= 0.8; // 减速20%
+                                    enemy.slowTimer = setTimeout(() => {
+                                        enemy.speed = originalSpeed;
+                                        enemy.slowTimer = null;
+                                    }, 3000);
+                                }
+
+                                // 法师范围伤害
+                                if (projectile.type === 'mage') {
+                                    // 添加爆炸效果
+                                    const explosion = document.createElement('div');
+                                    explosion.className = 'mage-explosion';
+                                    explosion.style.left = `${projectile.endX - 50}px`;
+                                    explosion.style.top = `${projectile.endY - 50}px`;
+                                    elements.gameBoard.appendChild(explosion);
+
+                                    setTimeout(() => {
+                                        if (explosion.parentNode) {
+                                            explosion.parentNode.removeChild(explosion);
+                                        }
+                                    }, 500);
+
+                                    // 对附近敌人造成伤害
+                                    gameState.enemyCharacters.forEach(nearbyEnemy => {
+                                        if (nearbyEnemy.id !== enemy.id) {
+                                            const dx = nearbyEnemy.x - projectile.endX;
+                                            const dy = nearbyEnemy.y - projectile.endY;
+                                            const distance = Math.sqrt(dx * dx + dy * dy);
+
+                                            if (distance < 50) {
+                                                const splashDamage = actualDamage * 0.8;
+                                                nearbyEnemy.health -= splashDamage;
+
+                                                // 法师减速效果 - 范围伤害
+                                                if (nearbyEnemy.slowTimer) clearTimeout(nearbyEnemy.slowTimer);
+                                                const originalSpeed = nearbyEnemy.speed;
+                                                nearbyEnemy.speed *= 0.8; // 减速20%
+                                                nearbyEnemy.slowTimer = setTimeout(() => {
+                                                    nearbyEnemy.speed = originalSpeed;
+                                                    nearbyEnemy.slowTimer = null;
+                                                }, 3000);
+
+                                                // 创建伤害效果
+                                                createDamageEffect(nearbyEnemy.x, nearbyEnemy.y, `-${Math.round(splashDamage)}`, '#ff0000');
+                                                createHitParticles(nearbyEnemy.x, nearbyEnemy.y, 8, '#ff0000');
+                                            }
+                                        }
+                                    });
+                                }
+
+                                // 更新血条
+                                const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                                if (enemyEl) {
+                                    const healthBar = enemyEl.querySelector('.health-fill-character');
+                                    if (healthBar) {
+                                        healthBar.style.width = `${(enemy.health / enemy.maxHealth) * 100}%`;
+                                    }
+                                }
+
+                                // 创建伤害效果
+                                createDamageEffect(projectile.endX, projectile.endY, `-${Math.round(actualDamage)}`, '#e74c3c');
+
+                                // 创建命中粒子效果（根据攻击类型不同颜色）
+                                let particleColor = '#f1c40f';
+                                if (projectile.type === 'mage') particleColor = '#ff0000';
+                                if (projectile.type === 'archer') particleColor = projectile.isDouble ? '#ffd700' : '#2ecc71';
+                                if (projectile.type === 'blade') particleColor = '#e74c3c';
+
+                                createHitParticles(projectile.endX, projectile.endY, 8, particleColor);
+                            }
+                        });
+                    } else {
+                        // 更新抛射物位置
+                        projectile.x = projectile.startX + (projectile.endX - projectile.startX) * projectile.progress;
+                        projectile.y = projectile.startY + (projectile.endY - projectile.startY) * projectile.progress;
+
+                        const projEl = document.querySelector(`.projectile[data-id="${projectile.id}"]`);
+                        if (projEl) {
+                            projEl.style.left = `${projectile.x - 15}px`;
+                            projEl.style.top = `${projectile.y - 15}px`;
+                        }
+
+                        // 添加拖尾效果（法师火球）
+                        if (projectile.type === 'mage' && Math.random() < 0.5) {
+                            const trail = document.createElement('div');
+                            trail.className = 'trail';
+                            trail.style.left = `${projectile.x - 7}px`;
+                            trail.style.top = `${projectile.y - 7}px`;
+                            trail.style.background = 'radial-gradient(circle, #ff8800, transparent)';
+                            elements.gameBoard.appendChild(trail);
+
+                            setTimeout(() => {
+                                if (trail.parentNode) {
+                                    trail.parentNode.removeChild(trail);
+                                }
+                            }, 500);
+                        }
+                    }
+                }
+            }
+            
+            // 更新攻击特效
+            function updateAttackEffects(deltaTime) {
+                for (let i = gameState.attackEffects.length - 1; i >= 0; i--) {
+                    const effect = gameState.attackEffects[i];
+                    effect.lifetime -= deltaTime;
+
+                    if (effect.lifetime <= 0) {
+                        const effectEl = document.querySelector(`.${effect.type === 'warrior' ? 'warrior-attack' : 'paladin-attack'}[data-id="${effect.id}"]`);
+                        if (effectEl) effectEl.remove();
+                        gameState.attackEffects.splice(i, 1);
+
+                        // 应用伤害
+                        gameState.enemyCharacters.forEach(enemy => {
+                            if (Math.abs(enemy.x - effect.x) < 40 &&
+                                Math.abs(enemy.y - effect.y) < 40) {
+
+                                const damage = effect.type === 'warrior' ?
+                                    gameState.characterStats.warrior.damage :
+                                    gameState.characterStats.paladin.damage;
+
+                                const actualDamage = calculateDamage(damage, effect.damageType, enemy.type);
+                                enemy.health -= actualDamage;
+
+                                // 更新血条
+                                const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                                if (enemyEl) {
+                                    const healthBar = enemyEl.querySelector('.health-fill-character');
+                                    if (healthBar) {
+                                        healthBar.style.width = `${(enemy.health / enemy.maxHealth) * 100}%`;
+                                    }
+                                }
+
+                                // 创建伤害效果
+                                createDamageEffect(effect.x, effect.y, `-${Math.round(actualDamage)}`, '#e74c3c');
+
+                                // 创建命中粒子效果
+                                createHitParticles(effect.x, effect.y, 8, effect.type === 'warrior' ? '#3498db' : '#f1c40f');
+                            }
+                        });
+                    }
+                }
+            }
+            
+            // 更新技能特效
+            function updateSkillEffects(deltaTime) {
+                for (let i = gameState.skillEffects.length - 1; i >= 0; i--) {
+                    const effect = gameState.skillEffects[i];
+                    effect.lifetime -= deltaTime;
+
+                    if (effect.lifetime <= 0) {
+                        const effectEl = document.querySelector(`.skill-effect[data-id="${effect.id}"]`);
+                        if (effectEl) effectEl.remove();
+                        gameState.skillEffects.splice(i, 1);
+                    }
+                }
+            }
+
+            // 创建伤害效果
+            function createDamageEffect(x, y, text, color) {
+                const effect = {
+                    id: Date.now(),
+                    x: x,
+                    y: y,
+                    text: text,
+                    color: color,
+                    lifetime: 1200
+                };
+
+                gameState.damageEffects.push(effect);
+
+                // 创建效果元素
+                const effectEl = document.createElement('div');
+                effectEl.className = 'damage-effect';
+                effectEl.textContent = text;
+                effectEl.style.color = color;
+                effectEl.style.left = `${x}px`;
+                effectEl.style.top = `${y}px`;
+                effectEl.dataset.id = effect.id;
+                elements.gameBoard.appendChild(effectEl);
+            }
+
+            // 更新伤害效果
+            function updateDamageEffects(deltaTime) {
+                for (let i = gameState.damageEffects.length - 1; i >= 0; i--) {
+                    const effect = gameState.damageEffects[i];
+                    effect.lifetime -= deltaTime;
+
+                    if (effect.lifetime <= 0) {
+                        const effectEl = document.querySelector(`.damage-effect[data-id="${effect.id}"]`);
+                        if (effectEl) effectEl.remove();
+                        gameState.damageEffects.splice(i, 1);
+                    }
+                }
+            }
+
+            // 创建治疗效果
+            function createHealEffect(x, y, text) {
+                const effect = {
+                    id: Date.now(),
+                    x: x,
+                    y: y,
+                    text: text,
+                    lifetime: 1800
+                };
+
+                gameState.healEffects.push(effect);
+
+                // 创建效果元素
+                const effectEl = document.createElement('div');
+                effectEl.className = 'heal-effect';
+                effectEl.textContent = text;
+                effectEl.style.left = `${x}px`;
+                effectEl.style.top = `${y}px`;
+                effectEl.dataset.id = effect.id;
+                elements.gameBoard.appendChild(effectEl);
+            }
+
+            // 更新治疗效果
+            function updateHealEffects(deltaTime) {
+                for (let i = gameState.healEffects.length - 1; i >= 0; i--) {
+                    const effect = gameState.healEffects[i];
+                    effect.lifetime -= deltaTime;
+
+                    if (effect.lifetime <= 0) {
+                        const effectEl = document.querySelector(`.heal-effect[data-id="${effect.id}"]`);
+                        if (effectEl) effectEl.remove();
+                        gameState.healEffects.splice(i, 1);
+                    }
+                }
+            }
+            
+            // 创建表情效果（带边框）
+            function createEmotion(x, y, type) {
+                let icon = '';
+                let className = '';
+                
+                switch(type) {
+                    case 'happy':
+                        icon = 'fa-smile';
+                        className = 'emotion-happy';
+                        break;
+                    case 'angry':
+                        icon = 'fa-angry';
+                        className = 'emotion-angry';
+                        break;
+                    case 'sad':
+                        icon = 'fa-sad-cry';
+                        className = 'emotion-sad';
+                        break;
+                    case 'proud':
+                        icon = 'fa-crown';
+                        className = 'emotion-proud';
+                        break;
+                    case 'scared':
+                        icon = 'fa-surprise';
+                        className = 'emotion-scared';
+                        break;
+                    case 'excited':
+                        icon = 'fa-star';
+                        className = 'emotion-excited';
+                        break;
+                    case 'confident':
+                        icon = 'fa-check-circle';
+                        className = 'emotion-confident';
+                        break;
+                    case 'amazed':
+                        icon = 'fa-star';
+                        className = 'emotion-amazed';
+                        break;
+                    case 'determined':
+                        icon = 'fa-fist-raised';
+                        className = 'emotion-determined';
+                        break;
+                    case 'annoyed':
+                        icon = 'fa-frown';
+                        className = 'emotion-annoyed';
+                        break;
+                    case 'surprised':
+                        icon = 'fa-surprise';
+                        className = 'emotion-surprised';
+                        break;
+                    case 'tired':
+                        icon = 'fa-tired';
+                        className = 'emotion-tired';
+                        break;
+                    case 'victory':
+                        icon = 'fa-trophy';
+                        className = 'emotion-victory';
+                        break;
+                    case 'defeat':
+                        icon = 'fa-skull';
+                        className = 'emotion-defeat';
+                        break;
+                    case 'alert':
+                        icon = 'fa-exclamation';
+                        className = 'emotion-alert';
+                        break;
+                }
+                
+                const emotionEl = document.createElement('div');
+                emotionEl.className = `character-emotion ${className}`;
+                emotionEl.innerHTML = `<i class="fas ${icon}"></i>`;
+                emotionEl.style.left = `${x}px`;
+                emotionEl.style.top = `${y}px`;
+                elements.gameBoard.appendChild(emotionEl);
+                
+                // 自动移除
+                setTimeout(() => {
+                    if (emotionEl.parentNode) {
+                        emotionEl.parentNode.removeChild(emotionEl);
+                    }
+                }, 2000);
+            }
+            
+            // 创建胜利特效
+            function createVictoryEffect() {
+                elements.victoryEffect.style.display = 'block';
+                
+                // 创建彩色纸屑
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.animationDelay = `${Math.random() * 2}s`;
+                    
+                    // 随机颜色
+                    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    elements.victoryEffect.appendChild(confetti);
+                    
+                    // 自动移除
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            confetti.parentNode.removeChild(confetti);
+                        }
+                    }, 3000);
+                }
+                
+                // 3秒后隐藏特效
+                setTimeout(() => {
+                    elements.victoryEffect.style.display = 'none';
+                }, 3000);
+            }
+
+            // 检查游戏状态
+            function checkGameState() {
+                // 检查是否需要生成新波次
+                if (Date.now() > gameState.nextWaveTimer && gameState.enemyCharacters.length === 0 && !gameState.gameOver) {
+                    spawnEnemyWave();
+                }
+            
+                if (gameState.playerHealth <= 0) {
+                    gameState.gameOver = true;
+                    if (gameState.endlessMode) {
+                        saveToLeaderboard();
+                        let content = `坚持了: ${Math.floor(gameState.gameTime / 60)}分${Math.floor(gameState.gameTime % 60)}秒\n击杀: ${gameState.killCount}个敌人`;
+                        if (gameState.currentRunFragments.length > 0) {
+                            content += `\n获得碎片: ${gameState.currentRunFragments.length}个`;
+                        }
+                        showGameMessage('游戏结束!', content);
+                    } else {
+                        showGameMessage('失败!', '基地被摧毁了...');
+                    }
+                    return;
+                }
+                
+                // 时间胜利条件（3分钟）
+                if (!gameState.endlessMode && gameState.gameTime >= gameState.victoryTime) {
+                    gameState.gameOver = true;
+                    gameState.gold += 100;
+                    saveGameData();
+                    
+                    // 显示胜利表情
+                    gameState.playerCharacters.forEach(char => {
+                        createEmotion(char.x, char.y, 'victory');
+                    });
+                    createEmotion(210, 560, 'victory');
+                    
+                    // 创建胜利特效
+                    createVictoryEffect();
+                    
+                    // 延迟2秒显示升级界面
+                    setTimeout(() => {
+                        elements.levelUpContainer.style.display = 'flex';
+                        elements.gameMessage.style.display = 'none';
+                    }, 2000);
+                }
+            }
+
+            // 显示游戏消息
+            function showGameMessage(title, content) {
+                elements.messageTitle.textContent = title;
+                elements.messageContent.textContent = content;
+                elements.gameMessage.style.display = 'block';
+            }
+
+            // 重置游戏
+            function resetGame() {
+                gameState.playerHealth = 100;
+                gameState.enemyHealth = 100;
+                gameState.elixir = 10;
+                gameState.playerCharacters = [];
+                gameState.enemyCharacters = [];
+                gameState.projectiles = [];
+                gameState.damageEffects = [];
+                gameState.healEffects = [];
+                gameState.attackEffects = [];
+                gameState.skillEffects = [];
+                gameState.gameOver = false;
+                gameState.enemyWaveCount = 0;
+                gameState.waveCount = 0;
+                gameState.gameTime = 0;
+                gameState.paused = false;
+                gameState.killCount = 0;
+                gameState.nextWaveTimer = 0;
+                // 设置无尽模式标志和胜利时间
+                gameState.endlessMode = gameState.currentLevel === 'endless';
+                gameState.victoryTime = gameState.endlessMode ? Infinity : 180; // 普通关卡胜利时间为3分钟(180秒)
+
+                // 清除游戏板
+                document.querySelectorAll('.character, .projectile, .damage-effect, .heal-effect, .warrior-attack, .paladin-attack, .hit-particle').forEach(el => el.remove());
+                
+                // 取消卡牌选择
+                elements.cards.forEach(card => card.classList.remove('selected'));
+                gameState.selectedCard = null;
+                
+                // 隐藏召回按钮
+                elements.recallButton.style.display = 'none';
+                gameState.selectedCharacter = null;
+                
+                // 隐藏升级界面
+                elements.levelUpContainer.style.display = 'none';
+                elements.nextLevelContainer.style.display = 'none';
+                
+                // 恢复暂停按钮状态
+                const icon = elements.pauseButton.querySelector('i');
+                icon.className = 'fas fa-pause';
+                
+                updateUI();
+                
+                // 生成第一波敌人（立即生成）
+                spawnEnemyWave();
+            }
+
+            // 辅助函数
+            function getCharacterIcon(type) {
+                switch (type) {
+                    case 'warrior': return 'shield-alt';
+                    case 'archer': return 'bullseye';
+                    case 'mage': return 'hat-wizard';
+                    case 'blade': return 'user-ninja';
+                    case 'paladin': return 'hands-praying';
+                    default: return 'user';
+                }
+            }
+
+            function getEnemyIcon(type) {
+                switch (type) {
+                    case 'normal': return 'skull';
+                    case 'elite': return 'skull-crossbones';
+                    case 'boss': return 'dragon';
+                    case 'tank': return 'shield-alt';
+                    case 'speedy': return 'bolt';
+                    case 'flyer': return 'dove';
+                    case 'magic-immune': return 'hat-wizard';
+                    case 'physical-immune': return 'shield-alt';
+                    default: return 'ghost';
+                }
+            }
+
+            // 启动游戏
+            createParticles();
+            initGame();
+        });
+    </script>
+</body>
+</html>
