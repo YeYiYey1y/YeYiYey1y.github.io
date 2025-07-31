@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.85, viewport-fit=cover, user-scalable=no">
-    <title>战场指挥官 - 优化版</title>
+    <title>战场指挥官 - 德鲁伊扩展版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -254,12 +254,13 @@
             height: 150px;
             background: rgba(0, 0, 0, 0.6);
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             gap: 10px;
-            padding: 0 10px;
+            padding: 0 10px 0 20px;
             border-top: 3px solid #4a69bd;
             overflow-x: auto;
+            scroll-padding-left: 20px;
         }
 
         .card {
@@ -317,10 +318,30 @@
             animation: glow 2s infinite alternate;
         }
         .card.level-6 {
-            border: 3px solid;
-            border-image: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000) 1;
+            position: relative;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             animation: rainbowGlow 3s infinite alternate;
             box-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 30px rgba(255,0,255,0.5);
+        }
+
+        .card.level-6::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 17px;
+            background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000);
+            z-index: -1;
+            animation: rainbowBorder 6s infinite linear;
+        }
+
+        @keyframes rainbowBorder {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
         }
 
         @keyframes rainbowGlow {
@@ -1662,6 +1683,203 @@
             0% { transform: scale(0.5); opacity: 0.8; }
             100% { transform: scale(2); opacity: 0; }
         }
+        
+        /* 德鲁伊形态按钮 */
+        #druid-forms {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            padding: 5px;
+            z-index: 50;
+            display: none;
+        }
+        
+        .form-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #f1c40f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .form-button.active {
+            background: #f1c40f;
+            color: #000;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #f1c40f;
+        }
+        
+        .form-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 形态特效 */
+        .druid-transform {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.7), transparent);
+            animation: transformEffect 1s forwards;
+            pointer-events: none;
+            z-index: 35;
+        }
+        
+        @keyframes transformEffect {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        /* 德鲁伊角色样式 */
+        .character.druid {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
+        }
+        
+        .druid.beast-form {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+        }
+        
+        .druid.spirit-form {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+        
+        .druid.moon-form {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        /* 德鲁伊技能特效 */
+        .charge-effect {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(to right, transparent, #e67e22, transparent);
+            border-radius: 50%;
+            animation: chargeMove 0.5s forwards;
+            pointer-events: none;
+            z-index: 35;
+        }
+        
+        @keyframes chargeMove {
+            0% { width: 0; opacity: 0.8; }
+            100% { width: 200px; opacity: 0; }
+        }
+        
+        .heal-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.3), transparent);
+            pointer-events: none;
+            z-index: 30;
+            animation: fadeRain 1.5s forwards;
+        }
+        
+        @keyframes fadeRain {
+            0% { opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0; }
+        }
+        
+        .moonfire-effect {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #9b59b6, #8e44ad);
+            box-shadow: 0 0 15px #9b59b6;
+            animation: moonPulse 1s infinite alternate;
+            pointer-events: none;
+            z-index: 35;
+        }
+        
+        @keyframes moonPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+        
+        .moonfire-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #9b59b6, #8e44ad);
+            box-shadow: 0 0 10px #9b59b6;
+            pointer-events: none;
+            z-index: 35;
+            animation: dotPulse 1s infinite alternate;
+        }
+        
+        @keyframes dotPulse {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.6; transform: scale(0.9); }
+        }
+        
+        .druid-unlock-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 300;
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 40px rgba(46, 204, 113, 0.9);
+            display: none;
+        }
+        
+        .druid-unlock-message h2 {
+            color: #2ecc71;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+        
+        .druid-unlock-message p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        /* 德鲁伊卡片样式 - 与其他卡片相同 */
+        .card.druid .card-icon {
+            color: #2ecc71;
+        }
+        
+        /* 减速效果 */
+        .slow-effect {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            z-index: 30;
+            color: #3498db;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.8);
+            animation: slowFloat 2s forwards;
+            opacity: 0;
+        }
+        
+        @keyframes slowFloat {
+            0% { transform: translateX(-50%) translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -1669,6 +1887,14 @@
         <div id="particles-container"></div>
         <div id="victory-effect" class="victory-effect">
             <div class="victory-light"></div>
+        </div>
+        
+        <!-- 德鲁伊解锁提示 -->
+        <div class="druid-unlock-message" id="druid-unlock-message">
+            <h2>德鲁伊已解锁！</h2>
+            <p>恭喜！所有职业已达到6级，你解锁了隐藏职业：德鲁伊</p>
+            <p>德鲁伊拥有三种形态，可在战斗中自由转换</p>
+            <button class="game-button" id="close-druid-message">开始使用</button>
         </div>
         
         <!-- 关卡选择界面 -->
@@ -1797,6 +2023,26 @@
                 <div class="card-name">神圣骑士</div>
                 <div class="card-level">1</div>
             </div>
+            <!-- 德鲁伊卡片 - 与其他卡片统一 -->
+            <div class="card level-1 druid" data-type="druid" id="druid-card" style="display:none">
+                <div class="card-cost">6</div>
+                <div class="card-icon"><i class="fas fa-leaf"></i></div>
+                <div class="card-name">德鲁伊</div>
+                <div class="card-level">1</div>
+            </div>
+        </div>
+        
+        <!-- 德鲁伊形态按钮 -->
+        <div id="druid-forms">
+            <button class="form-button" id="beast-form" title="野兽形态 (冷却中)" disabled>
+                <i class="fas fa-paw"></i>
+            </button>
+            <button class="form-button active" id="spirit-form" title="精灵形态">
+                <i class="fas fa-leaf"></i>
+            </button>
+            <button class="form-button" id="moon-form" title="月枭形态 (冷却中)" disabled>
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
         
         <div id="level-up-container">
@@ -1806,6 +2052,7 @@
             <div class="level-up-option" data-type="mage">升级奥术法师</div>
             <div class="level-up-option" data-type="blade">升级影刃刺客</div>
             <div class="level-up-option" data-type="paladin">升级神圣骑士</div>
+            <div class="level-up-option" data-type="druid">升级德鲁伊</div>
             <button id="back-to-levels-upgrade" class="game-button">返回关卡选择</button>
         </div>
         
@@ -1832,6 +2079,7 @@
             <p>9. 每个角色都有独特的自动技能！</p>
             <p>10. 在无尽模式中，每击败50个敌人可获得角色碎片</p>
             <p>11. 收集5个碎片可升级角色至6级</p>
+            <p>12. 解锁所有职业6级后，获得隐藏职业：德鲁伊</p>
         </div>
         
         <div id="next-level-container">
@@ -1854,9 +2102,9 @@
         <!-- 卡片详情面板 -->
         <div id="card-detail">
             <div class="detail-header">
-                <div class="detail-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="detail-icon"><i class="fas fa-shield-alt" id="detail-icon"></i></div>
                 <div class="detail-info">
-                    <h3>圣盾战士</h3>
+                    <h3 id="detail-title">圣盾战士</h3>
                     <div class="detail-level">等级 <span id="detail-level">1</span></div>
                 </div>
             </div>
@@ -1892,6 +2140,9 @@
                 <div class="stat-row">
                     <span class="stat-label">碎片:</span>
                     <span class="stat-value" id="detail-fragments">0/5</span>
+                </div>
+                <div class="stat-row" style="text-align: center; margin-top: 15px;">
+                    <button id="upgrade-to-6-button" class="game-button" disabled>升级到6级</button>
                 </div>
             </div>
             <div style="text-align: center; margin-top: 20px;">
@@ -1982,7 +2233,8 @@
                     archer: 1,
                     mage: 1,
                     blade: 1,
-                    paladin: 1
+                    paladin: 1,
+                    druid: 0
                 },
                 fragments: loadedData?.fragments || {
                     warrior: 0,
@@ -1996,7 +2248,8 @@
                     archer: { health: 180, damage: 35, cost: 3, range: 220, attackSpeed: 1100, healPower: 0, speed: 0.4, damageType: 'physical' },
                     mage: { health: 150, damage: 55, cost: 4, range: 200, attackSpeed: 1800, healPower: 0, speed: 0.25, damageType: 'magic' },
                     blade: { health: 220, damage: 65, cost: 3, range: 70, attackSpeed: 900, healPower: 0, speed: 0.5, damageType: 'mixed' },
-                    paladin: { health: 300, damage: 20, cost: 5, range: 90, attackSpeed: 1600, healPower: 30, speed: 0.3, damageType: 'magic' }
+                    paladin: { health: 300, damage: 20, cost: 5, range: 90, attackSpeed: 1600, healPower: 30, speed: 0.3, damageType: 'magic' },
+                    druid: { health: 400, damage: 30, cost: 6, range: 150, attackSpeed: 1600, healPower: 40, speed: 0.35, damageType: 'magic' }
                 },
                 characterStats: {},
                 enemyWaveCount: 0,
@@ -2026,28 +2279,18 @@
                 // 新增波次信息
                 waveCount: 0,
                 currentRunFragments: [], // 当前游戏获得的碎片
-                lastFragmentKill: 0 // 上次获得碎片时的击杀数
+                lastFragmentKill: 0, // 上次获得碎片时的击杀数
+                // 德鲁伊状态
+                druidCharacter: null,
+                druidUnlocked: false
             };
 
-            // 初始化角色属性
-            function initCharacterStats() {
-                for (const type in gameState.characterBaseStats) {
-                    gameState.characterStats[type] = {...gameState.characterBaseStats[type]};
-                    
-                    // 根据等级提升属性
-                    const level = gameState.characterLevels[type];
-                    if (level > 1) {
-                        for (let i = 2; i <= level; i++) {
-                            gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
-                            gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
-                            
-                            if (type === 'paladin') {
-                                gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
-                            }
-                        }
-                    }
-                }
-            }
+            // 德鲁伊状态
+            const druidState = {
+                form: 'spirit', // spirit, beast, moon
+                lastTransformTime: 0,
+                transformCooldown: 10000
+            };
             
             // DOM 元素
             const elements = {
@@ -2104,6 +2347,7 @@
                 enemyResistance: document.getElementById('enemy-info-resistance'),
                 detailSkill: document.getElementById('detail-skill'),
                 detailFragments: document.getElementById('detail-fragments'),
+                upgradeTo6Button: document.getElementById('upgrade-to-6-button'),
                 // 新增元素
                 waveCounter: document.getElementById('wave-counter'),
                 waveTimer: document.getElementById('wave-timer'),
@@ -2116,12 +2360,23 @@
                 // 碎片收集器
                 fragmentCollector: document.querySelector('.fragment-collector'),
                 toggleFragments: document.getElementById('toggle-fragments'),
-                victoryEffect: document.getElementById('victory-effect')
+                victoryEffect: document.getElementById('victory-effect'),
+                // 德鲁伊元素
+                druidCard: document.getElementById('druid-card'),
+                druidForms: document.getElementById('druid-forms'),
+                beastForm: document.getElementById('beast-form'),
+                spiritForm: document.getElementById('spirit-form'),
+                moonForm: document.getElementById('moon-form'),
+                druidUnlockMessage: document.getElementById('druid-unlock-message'),
+                closeDruidMessage: document.getElementById('close-druid-message'),
+                detailTitle: document.getElementById('detail-title'),
+                detailIcon: document.getElementById('detail-icon')
             };
 
             // 初始化游戏
             function initGame() {
                 initCharacterStats();
+                checkDruidUnlock();
                 
                 // 更新UI
                 updateUI();
@@ -2139,6 +2394,23 @@
                 
                 // 开始游戏循环
                 startGameLoop();
+            }
+            
+            // 检查德鲁伊解锁条件
+            function checkDruidUnlock() {
+                const allMaxed = ['warrior', 'archer', 'mage', 'blade', 'paladin'].every(
+                    type => gameState.characterLevels[type] === 6
+                );
+                
+                if (allMaxed && !gameState.druidUnlocked) {
+                    gameState.druidUnlocked = true;
+                    gameState.characterLevels.druid = 6;
+                    elements.druidCard.style.display = 'flex';
+                    elements.druidUnlockMessage.style.display = 'block';
+                    // 隐藏碎片收集器
+                    elements.fragmentCollector.style.display = 'none';
+                    saveGameData();
+                }
             }
             
             // 更新关卡选择器状态
@@ -2323,6 +2595,16 @@
                 elements.playerHealth.style.width = `${gameState.playerHealth}%`;
                 elements.enemyHealth.style.width = `${gameState.enemyHealth}%`;
                 
+                // 更新德鲁伊卡片和碎片收集器状态
+                if (gameState.druidUnlocked) {
+                    elements.druidCard.style.display = 'flex';
+                    elements.fragmentCollector.style.display = 'none';
+                    elements.toggleFragments.style.display = 'none';
+                } else {
+                    elements.druidCard.style.display = 'none';
+                    elements.toggleFragments.style.display = 'block';
+                }
+                
                 // 更新卡牌等级显示
                 elements.cards.forEach(card => {
                     const type = card.dataset.type;
@@ -2376,6 +2658,82 @@
                 elements.mageFragments.textContent = `${gameState.fragments.mage}/5`;
                 elements.bladeFragments.textContent = `${gameState.fragments.blade}/5`;
                 elements.paladinFragments.textContent = `${gameState.fragments.paladin}/5`;
+                
+                // 更新德鲁伊形态按钮
+                updateFormButtons();
+            }
+
+            // 更新形态按钮状态
+            function updateFormButtons() {
+                if (!gameState.druidCharacter) return;
+                
+                // 使用performance.now()以与游戏循环时间戳保持一致
+                const now = performance.now();
+                const cooldownLeft = druidState.transformCooldown - (now - druidState.lastTransformTime);
+                
+                // 在冷却期间或当前形态时禁用按钮
+                elements.beastForm.disabled = cooldownLeft > 0 || druidState.form === 'beast';
+                elements.spiritForm.disabled = cooldownLeft > 0 || druidState.form === 'spirit';
+                elements.moonForm.disabled = cooldownLeft > 0 || druidState.form === 'moon';
+                
+                // 更新激活状态
+                elements.beastForm.classList.toggle('active', druidState.form === 'beast');
+                elements.spiritForm.classList.toggle('active', druidState.form === 'spirit');
+                elements.moonForm.classList.toggle('active', druidState.form === 'moon');
+                
+                // 设置冷却提示
+                if (cooldownLeft > 0) {
+                    const seconds = Math.ceil(cooldownLeft / 1000);
+                    elements.beastForm.title = `野兽形态 (冷却中: ${seconds}秒)`;
+                    elements.spiritForm.title = `精灵形态 (冷却中: ${seconds}秒)`;
+                    elements.moonForm.title = `月枭形态 (冷却中: ${seconds}秒)`;
+                } else {
+                    elements.beastForm.title = "野兽形态";
+                    elements.spiritForm.title = "精灵形态";
+                    elements.moonForm.title = "月枭形态";
+                }
+            }
+            
+            // 计算实际伤害（考虑抗性）
+            function calculateDamage(damage, damageType, enemyType) {
+                // 刺客的混合伤害无视所有抗性
+                if (damageType === 'mixed') {
+                    return damage;
+                }
+                
+                // 物理免疫怪：法术伤害减半
+                if (enemyType === 'physical-immune') {
+                    if (damageType === 'magic') return damage * 0.5;
+                    if (damageType === 'physical') return damage * 0.5;
+                }
+                
+                // 法术免疫怪：物理伤害减半
+                if (enemyType === 'magic-immune') {
+                    if (damageType === 'physical') return damage * 0.5;
+                    if (damageType === 'magic') return damage * 0.5;
+                }
+                
+                return damage;
+            }
+
+            // 初始化角色属性
+            function initCharacterStats() {
+                for (const type in gameState.characterBaseStats) {
+                    gameState.characterStats[type] = {...gameState.characterBaseStats[type]};
+                    
+                    // 根据等级提升属性
+                    const level = gameState.characterLevels[type];
+                    if (level > 1) {
+                        for (let i = 2; i <= level; i++) {
+                            gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
+                            gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
+                            
+                            if (type === 'paladin' || type === 'druid') {
+                                gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
+                            }
+                        }
+                    }
+                }
             }
 
             // 设置事件监听
@@ -2561,6 +2919,16 @@
                     elements.fragmentCollector.style.display = 
                         elements.fragmentCollector.style.display === 'none' ? 'flex' : 'none';
                 });
+                
+                // 形态转换按钮
+                elements.beastForm.addEventListener('click', () => transformDruid('beast'));
+                elements.spiritForm.addEventListener('click', () => transformDruid('spirit'));
+                elements.moonForm.addEventListener('click', () => transformDruid('moon'));
+                
+                // 关闭德鲁伊解锁消息
+                elements.closeDruidMessage.addEventListener('click', () => {
+                    elements.druidUnlockMessage.style.display = 'none';
+                });
             }
 
             // 显示排行榜
@@ -2620,10 +2988,115 @@
                 localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
             }
 
-            // 显示卡片详情
+            // 升级到6级
+            function upgradeToLevel6(type) {
+                if (gameState.characterLevels[type] === 5 && gameState.fragments[type] >= 5) {
+                    gameState.characterLevels[type] = 6;
+                    gameState.fragments[type] -= 5;
+                    saveGameData();
+
+                    // 提升角色属性
+                    const stats = gameState.characterStats[type];
+                    stats.health *= 1.5;
+                    stats.damage *= 1.5;
+                    stats.attackSpeed *= 0.85;
+
+                    // 创建升级特效
+                    createLevelUpEffect();
+
+                    // 更新UI
+                    showCardDetail(type);
+                    updateUI();
+
+                    // 显示提示信息
+                    showMessage("恭喜！" + getCharacterName(type) + "已升级到6级！");
+                    
+                    // 检查德鲁伊解锁
+                    checkDruidUnlock();
+                }
+            }
+
+            // 创建升级特效
+            function createLevelUpEffect() {
+                const effect = document.createElement('div');
+                effect.className = 'level-up-effect';
+                effect.style.position = 'fixed';
+                effect.style.top = '50%';
+                effect.style.left = '50%';
+                effect.style.transform = 'translate(-50%, -50%)';
+                effect.style.width = '300px';
+                effect.style.height = '300px';
+                effect.style.borderRadius = '50%';
+                effect.style.background = 'radial-gradient(circle, rgba(241, 196, 15, 0.8), transparent 70%)';
+                effect.style.zIndex = '200';
+                effect.style.animation = 'levelUpPulse 1.5s forwards';
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes levelUpPulse {
+                        0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+                        100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+                document.body.appendChild(effect);
+
+                setTimeout(() => {
+                    if (effect.parentNode) {
+                        effect.parentNode.removeChild(effect);
+                    }
+                }, 1500);
+            }
+
+            // 显示消息提示
+            function showMessage(text) {
+                const message = document.createElement('div');
+                message.className = 'game-message';
+                message.textContent = text;
+                message.style.position = 'fixed';
+                message.style.top = '20px';
+                message.style.left = '50%';
+                message.style.transform = 'translateX(-50%)';
+                message.style.background = 'rgba(0, 0, 0, 0.8)';
+                message.style.color = 'white';
+                message.style.padding = '10px 20px';
+                message.style.borderRadius = '5px';
+                message.style.zIndex = '200';
+                message.style.animation = 'fadeInOut 3s forwards';
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInOut {
+                        0% { opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        message.parentNode.removeChild(message);
+                    }
+                }, 3000);
+            }
+
             function showCardDetail(type) {
                 const stats = gameState.characterStats[type];
                 const level = gameState.characterLevels[type];
+                const fragments = gameState.fragments[type] || 0;
+
+                // 检查是否可以升级到6级
+                const canUpgrade = level === 5 && fragments >= 5;
+                const upgradeButton = document.getElementById('upgrade-to-6-button');
+                upgradeButton.disabled = !canUpgrade;
+                upgradeButton.style.display = level === 5 ? 'block' : 'none';
+
+                // 绑定升级按钮事件
+                upgradeButton.onclick = () => upgradeToLevel6(type);
 
                 // 更新详情面板
                 elements.detailLevel.textContent = level;
@@ -2632,7 +3105,7 @@
                 elements.detailRange.textContent = stats.range;
                 elements.detailAttackSpeed.textContent = (stats.attackSpeed / 1000).toFixed(1) + '秒';
                 elements.detailCost.textContent = stats.cost;
-                elements.detailFragments.textContent = `${gameState.fragments[type]}/5`;
+                elements.detailFragments.textContent = `${fragments}/5`;
                 elements.damageType.textContent =
                     stats.damageType === 'physical' ? '物理' :
                     stats.damageType === 'magic' ? '法术' : '混合';
@@ -2647,7 +3120,7 @@
                         skillDesc = '强力箭(2倍伤害)';
                         break;
                     case 'mage':
-                        skillDesc = '范围伤害';
+                        skillDesc = '范围伤害+减速';
                         break;
                     case 'blade':
                         skillDesc = '冲刺攻击(1.5倍伤害)';
@@ -2655,22 +3128,23 @@
                     case 'paladin':
                         skillDesc = '圣光治疗';
                         break;
+                    case 'druid':
+                        skillDesc = '形态转换';
+                        break;
                 }
                 elements.detailSkill.textContent = skillDesc;
 
                 // 更新图标
-                const icon = elements.cardDetail.querySelector('.detail-icon i');
-                icon.className = `fas fa-${getCharacterIcon(type)}`;
+                const iconClass = type === 'warrior' ? 'fa-shield-alt' :
+                                type === 'archer' ? 'fa-bullseye' :
+                                type === 'mage' ? 'fa-hat-wizard' :
+                                type === 'blade' ? 'fa-user-ninja' :
+                                type === 'paladin' ? 'fa-hands-praying' :
+                                'fa-leaf';
+                elements.detailIcon.className = `fas ${iconClass}`;
 
                 // 更新标题
-                const title = elements.cardDetail.querySelector('.detail-info h3');
-                switch(type) {
-                    case 'warrior': title.textContent = '圣盾战士'; break;
-                    case 'archer': title.textContent = '精灵射手'; break;
-                    case 'mage': title.textContent = '奥术法师'; break;
-                    case 'blade': title.textContent = '影刃刺客'; break;
-                    case 'paladin': title.textContent = '神圣骑士'; break;
-                }
+                elements.detailTitle.textContent = getCharacterName(type);
 
                 // 添加等级边框
                 elements.cardDetail.classList.remove('level-1', 'level-2', 'level-3', 'level-4', 'level-5', 'level-6');
@@ -2678,6 +3152,18 @@
 
                 // 显示面板
                 elements.cardDetail.style.display = 'block';
+            }
+
+            // 获取角色名称
+            function getCharacterName(type) {
+                switch(type) {
+                    case 'warrior': return '圣盾战士';
+                    case 'archer': return '精灵射手';
+                    case 'mage': return '奥术法师';
+                    case 'blade': return '影刃刺客';
+                    case 'paladin': return '神圣骑士';
+                    case 'druid': return '德鲁伊';
+                }
             }
 
             // 显示敌人信息
@@ -2767,6 +3253,15 @@
                     // 从数组中移除
                     gameState.playerCharacters = gameState.playerCharacters.filter(c => c.id !== char.id);
                     
+                    // 如果是德鲁伊，隐藏形态按钮
+                    if (char.type === 'druid') {
+                        elements.druidForms.style.display = 'none';
+                        gameState.druidCharacter = null;
+                        // 重置德鲁伊状态
+                        druidState.form = 'spirit';
+                        console.log('召回德鲁伊，重置形态为:', druidState.form);
+                    }
+                    
                     // 移除DOM元素
                     if (charEl) charEl.remove();
                     
@@ -2784,6 +3279,12 @@
             // 放置角色
             function placeCharacter(type, x, y) {
                 const stats = gameState.characterStats[type];
+                
+                // 限制战场只能存在一个德鲁伊
+                if (type === 'druid' && gameState.druidCharacter !== null) {
+                    showMessage('战场只能同时存在一个德鲁伊！');
+                    return;
+                }
                 
                 if (gameState.elixir < stats.cost || gameState.playerCharacters.length >= gameState.maxPlayerUnits) return;
                 
@@ -2809,7 +3310,8 @@
                     skillCooldown: type === 'warrior' ? 3000 : 
                                    type === 'archer' ? 8000 : 
                                    type === 'blade' ? 5000 : 
-                                   type === 'paladin' ? 2000 : 0,
+                                   type === 'paladin' ? 2000 : 
+                                   type === 'druid' ? 12000 : 0,
                     target: null,
                     moving: false,
                     nextAttackDouble: false,
@@ -2823,19 +3325,46 @@
                 charEl.className = `character player-character ${type}`;
                 charEl.style.left = `${character.x - 25}px`;
                 charEl.style.top = `${character.y - 25}px`;
-                charEl.innerHTML = `
-                    <i class="fas fa-${getCharacterIcon(type)}"></i>
-                    <div class="character-health">
-                        <div class="health-fill-character" style="width:100%"></div>
-                    </div>
-                    <div class="damage-type ${
-                        stats.damageType === 'physical' ? 'physical-damage' : 
-                        stats.damageType === 'magic' ? 'magic-damage' : 'mixed-damage'
-                    }">
-                        ${stats.damageType === 'physical' ? '物理' : 
-                          stats.damageType === 'magic' ? '法术' : '混合'}
-                    </div>
-                `;
+                
+                // 德鲁伊特殊处理
+                if (type === 'druid') {
+                    // 根据当前druidState设置形态
+                    const initialForm = druidState.form || 'spirit';
+                    charEl.classList.add('druid', `${initialForm}-form`);
+                    // 设置角色形态
+                    character.form = initialForm;
+                    druidState.form = initialForm;
+                    console.log('德鲁伊初始形态设置为:', initialForm);
+                    charEl.innerHTML = `
+                        <i class="fas ${initialForm === 'beast' ? 'fa-paw' : initialForm === 'spirit' ? 'fa-leaf' : 'fa-moon'}"></i>
+                        <div class="character-health">
+                            <div class="health-fill-character" style="width:100%"></div>
+                        </div>
+                        <div class="damage-type magic-damage">法术</div>
+                    `;
+                    
+                    // 保存德鲁伊引用
+                    gameState.druidCharacter = character;
+                    
+                    // 显示形态按钮
+                    elements.druidForms.style.display = 'flex';
+                    updateFormButtons();
+                } else {
+                    charEl.innerHTML = `
+                        <i class="fas fa-${getCharacterIcon(type)}"></i>
+                        <div class="character-health">
+                            <div class="health-fill-character" style="width:100%"></div>
+                        </div>
+                        <div class="damage-type ${
+                            stats.damageType === 'physical' ? 'physical-damage' : 
+                            stats.damageType === 'magic' ? 'magic-damage' : 'mixed-damage'
+                        }">
+                            ${stats.damageType === 'physical' ? '物理' : 
+                              stats.damageType === 'magic' ? '法术' : '混合'}
+                        </div>
+                    `;
+                }
+                
                 charEl.dataset.id = character.id;
                 elements.gameBoard.appendChild(charEl);
                 
@@ -2848,7 +3377,349 @@
                 
                 updateUI();
             }
+            
+            // 转换德鲁伊形态
+            function transformDruid(form) {
+                if (!gameState.druidCharacter) {
+                    console.log('无德鲁伊角色，无法切换形态');
+                    return;
+                }
+                if (druidState.form === form) {
+                    console.log('已经是', form, '形态，无需切换');
+                    return;
+                }
+                
+                // 使用performance.now()以与游戏循环时间戳保持一致
+                const now = performance.now();
+                if (now - druidState.lastTransformTime < druidState.transformCooldown) {
+                    console.log('形态转换冷却中，剩余时间:', druidState.transformCooldown - (now - druidState.lastTransformTime), 'ms');
+                    return;
+                }
+                
+                druidState.lastTransformTime = now;
+                druidState.form = form;
+                gameState.druidCharacter.form = form;
+                console.log('切换到', form, '形态，druidState.form:', druidState.form, '角色form:', gameState.druidCharacter.form);
+                
+                // 更新角色外观
+                const charEl = document.querySelector(`.player-character[data-id="${gameState.druidCharacter.id}"]`);
+                if (charEl) {
+                    // 移除所有形态类
+                    charEl.classList.remove('beast-form', 'spirit-form', 'moon-form');
+                    // 添加新形态类
+                    charEl.classList.add(`${form}-form`);
+                    // 更新图标
+                    charEl.querySelector('i').className = form === 'beast' ? 'fas fa-paw' : 
+                                                         form === 'spirit' ? 'fas fa-leaf' : 'fas fa-moon';
+                }
+                
+                // 计算当前生命值百分比
+                const currentHealthPercentage = gameState.druidCharacter.health / gameState.druidCharacter.maxHealth;
+                
+                // 根据形态更新属性
+                if (form === 'beast') {
+                    // 野兽形态属性
+                    gameState.druidCharacter.damage = Math.round(gameState.characterStats.warrior.damage * 0.75);
+                    gameState.druidCharacter.maxHealth = Math.round(gameState.characterStats.warrior.health * 1.5);
+                    gameState.druidCharacter.health = Math.round(gameState.druidCharacter.maxHealth * currentHealthPercentage);
+                    gameState.druidCharacter.skillCooldown = 5000; // 冲锋冷却
+                } 
+                else if (form === 'spirit') {
+                    // 精灵形态属性
+                    gameState.druidCharacter.damage = gameState.characterStats.druid.damage;
+                    gameState.druidCharacter.maxHealth = gameState.characterStats.druid.health;
+                    gameState.druidCharacter.health = Math.round(gameState.druidCharacter.maxHealth * currentHealthPercentage);
+                    gameState.druidCharacter.skillCooldown = 12000; // 治疗之雨冷却
+                } 
+                else if (form === 'moon') {
+                    // 月枭形态属性 - 与重新召唤时保持一致
+                    gameState.druidCharacter.damage = 10; // 基础攻击
+                    gameState.druidCharacter.attackSpeed = 1400; // 与野兽形态一致
+                    gameState.druidCharacter.maxHealth = gameState.characterStats.druid.health;
+                    gameState.druidCharacter.health = Math.round(gameState.druidCharacter.maxHealth * currentHealthPercentage);
+                    gameState.druidCharacter.skillCooldown = 0; // 无主动技能
+                    
+                    // 确保正确初始化月火计时器，使用performance.now()以保持一致性
+                    gameState.druidCharacter.moonfireTimer = now;
+                    console.log('月枭形态初始化，设置计时器为:', now);
+                    console.log('当前performance.now():', now);
+                    console.log('druidState形态:', druidState.form);
+                    console.log('角色形态:', gameState.druidCharacter.form);
+                    console.log('计时器与当前时间差:', performance.now() - gameState.druidCharacter.moonfireTimer);
+                }
+                
+                // 更新血条
+                if (charEl) {
+                    const healthBar = charEl.querySelector('.health-fill-character');
+                    if (healthBar) {
+                        healthBar.style.width = `${currentHealthPercentage * 100}%`;
+                    }
+                }
+                
+                // 创建转换特效
+                const transformEffect = document.createElement('div');
+                transformEffect.className = 'druid-transform';
+                transformEffect.style.left = `${gameState.druidCharacter.x - 50}px`;
+                transformEffect.style.top = `${gameState.druidCharacter.y - 50}px`;
+                elements.gameBoard.appendChild(transformEffect);
+                
+                setTimeout(() => {
+                    if (transformEffect.parentNode) {
+                        transformEffect.parentNode.removeChild(transformEffect);
+                    }
+                }, 1000);
+                
+                updateFormButtons();
+                createEmotion(gameState.druidCharacter.x, gameState.druidCharacter.y, 'amazed');
+            }
+            
+            // 德鲁伊技能逻辑
+            function triggerDruidSkill(character, timestamp) {
+                if (!character) return;
+                
+                // 野兽形态技能：冲锋
+                if (character.form === 'beast') {
+                    // 寻找最近的敌人
+                    let closestEnemy = null;
+                    let minDistance = Infinity;
+                    
+                    gameState.enemyCharacters.forEach(enemy => {
+                        if (enemy.health > 0) {
+                            const dx = character.x - enemy.x;
+                            const dy = character.y - enemy.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < minDistance && distance < 300) {
+                                minDistance = distance;
+                                closestEnemy = enemy;
+                            }
+                        }
+                    });
+                    
+                    if (closestEnemy) {
+                        // 冲锋到敌人面前
+                        character.x = closestEnemy.x - 50;
+                        character.y = closestEnemy.y;
+                        
+                        // 创建冲锋特效
+                        const chargeEffect = document.createElement('div');
+                        chargeEffect.className = 'charge-effect';
+                        chargeEffect.style.left = `${character.x}px`;
+                        chargeEffect.style.top = `${character.y}px`;
+                        chargeEffect.style.transform = `rotate(${Math.atan2(closestEnemy.y - character.y, closestEnemy.x - character.x)}rad)`;
+                        elements.gameBoard.appendChild(chargeEffect);
+                        
+                        setTimeout(() => {
+                            if (chargeEffect.parentNode) {
+                                chargeEffect.parentNode.removeChild(chargeEffect);
+                            }
+                        }, 500);
+                        
+                        // 眩晕敌人1秒
+                        closestEnemy.stunnedUntil = timestamp + 1000;
+                        
+                        // 更新角色位置
+                        const charEl = document.querySelector(`.player-character[data-id='${character.id}']`);
+                        if (charEl) {
+                            charEl.style.left = `${character.x - 25}px`;
+                            charEl.style.top = `${character.y - 25}px`;
+                        }
+                        
+                        createEmotion(character.x, character.y, 'determined');
+                    }
+                }
+                // 精灵形态技能：治疗之雨
+                else if (character.form === 'spirit') {
+                    // 创建治疗雨效果
+                    const healRain = document.createElement('div');
+                    healRain.className = 'heal-rain';
+                    elements.gameBoard.appendChild(healRain);
+                    
+                    setTimeout(() => {
+                        if (healRain.parentNode) {
+                            healRain.parentNode.removeChild(healRain);
+                        }
+                    }, 1500);
+                    
+                    // 治疗所有友方单位
+                    gameState.playerCharacters.forEach(friend => {
+                        friend.health = Math.min(friend.maxHealth, friend.health + character.healPower);
+                        
+                        // 更新血条
+                        const friendEl = document.querySelector(`.player-character[data-id="${friend.id}"]`);
+                        if (friendEl) {
+                            const healthBar = friendEl.querySelector('.health-fill-character');
+                            if (healthBar) {
+                                healthBar.style.width = `${(friend.health / friend.maxHealth) * 100}%`;
+                            }
+                        }
+                        
+                        // 创建治疗效果
+                        createHealEffect(friend.x, friend.y, `+${character.healPower}`);
+                        
+                        // 创建治疗粒子
+                        createHitParticles(friend.x, friend.y, 6, '#2ecc71');
+                        
+                        // 显示高兴表情
+                        if (timestamp - friend.lastEmotionTime > 3000) {
+                            createEmotion(friend.x, friend.y, 'happy');
+                            friend.lastEmotionTime = timestamp;
+                        }
+                        
+                        // 创建治疗特效
+                        const healEffect = document.createElement('div');
+                        healEffect.className = 'paladin-heal';
+                        healEffect.style.left = `${friend.x - 20}px`;
+                        healEffect.style.top = `${friend.y - 20}px`;
+                        elements.gameBoard.appendChild(healEffect);
+                        
+                        setTimeout(() => {
+                            if (healEffect.parentNode) {
+                                healEffect.parentNode.removeChild(healEffect);
+                            }
+                        }, 1000);
+                    });
+                    
+                    // 治疗自己
+                    character.health = Math.min(character.maxHealth, character.health + character.healPower);
+                    const charEl = document.querySelector(`.player-character[data-id='${character.id}']`);
+                    if (charEl) {
+                        const healthBar = charEl.querySelector('.health-fill-character');
+                        if (healthBar) {
+                            healthBar.style.width = '100%';
+                        }
+                    }
+                    
+                    createEmotion(character.x, character.y, 'happy');
+                }
+                
+                character.lastSkillTime = timestamp;
+            }
+            
+            // 月枭形态持续技能
+            function updateMoonfire(timestamp) {
+                // 调试信息
+                console.log('--- 月火术更新 ---');
+                console.log('当前时间戳:', timestamp);
+                console.log('德鲁伊角色存在:', !!gameState.druidCharacter);
+                if (gameState.druidCharacter) {
+                    console.log('角色形态:', gameState.druidCharacter.form);
+                    console.log('月火计时器存在:', !!gameState.druidCharacter.moonfireTimer);
+                    if (gameState.druidCharacter.moonfireTimer) {
+                        console.log('上次月火时间:', gameState.druidCharacter.moonfireTimer);
+                        console.log('时间差:', timestamp - gameState.druidCharacter.moonfireTimer);
+                    }
+                }
+                console.log('druidState形态:', druidState.form);
 
+                if (!gameState.druidCharacter) {
+                    console.log('无德鲁伊角色，退出月火术更新');
+                    return;
+                }
+                if (druidState.form !== 'moon') {
+                    console.log('druidState非月枭形态，退出月火术更新:', druidState.form);
+                    return;
+                }
+                if (gameState.druidCharacter.form !== 'moon') {
+                    console.log('角色非月枭形态，退出月火术更新:', gameState.druidCharacter.form);
+                    return;
+                }
+
+                // 统一使用performance.now()以保持时间戳一致性
+                const now = performance.now();
+                console.log('当前performance.now():', now);
+                console.log('当前timestamp:', timestamp);
+                console.log('时间戳差异:', now - timestamp);
+
+                // 确保计时器存在
+                if (!gameState.druidCharacter.moonfireTimer) {
+                    gameState.druidCharacter.moonfireTimer = now;
+                    console.log('初始化月火计时器:', now);
+                }
+
+                // 每2秒释放一次月火术
+                const timeSinceLast = now - gameState.druidCharacter.moonfireTimer;
+                console.log('距离上次月火时间(ms):', timeSinceLast);
+                if (timeSinceLast > 2000) {
+                    gameState.druidCharacter.moonfireTimer = now;
+                    console.log('触发月火术，重置计时器为:', now);
+                    
+                    // 寻找随机敌人
+                    if (gameState.enemyCharacters.length > 0) {
+                        const randomEnemy = gameState.enemyCharacters[Math.floor(Math.random() * gameState.enemyCharacters.length)];
+                        
+                        // 添加月火DOT效果
+                        if (!randomEnemy.moonfireStacks) {
+                            randomEnemy.moonfireStacks = 0;
+                        }
+                        randomEnemy.moonfireStacks++;
+                        randomEnemy.moonfireStart = timestamp;
+                        
+                        // 创建月火特效
+                        const moonfire = document.createElement('div');
+                        moonfire.className = 'moonfire-effect';
+                        moonfire.style.left = `${randomEnemy.x - 15}px`;
+                        moonfire.style.top = `${randomEnemy.y - 15}px`;
+                        moonfire.dataset.enemyId = randomEnemy.id;
+                        elements.gameBoard.appendChild(moonfire);
+                        console.log('创建月火特效:', moonfire);
+
+                        // 移除旧的DOT指示器
+                        const oldDotIndicators = document.querySelectorAll(`.moonfire-dot[data-enemy-id="${randomEnemy.id}"]`);
+                        oldDotIndicators.forEach(indicator => {
+                            indicator.remove();
+                            console.log('移除旧DOT指示器，敌人ID:', randomEnemy.id);
+                        });
+
+                        // 添加新的DOT指示器
+                        const dotIndicator = document.createElement('div');
+                        dotIndicator.className = 'moonfire-dot';
+                        dotIndicator.dataset.enemyId = randomEnemy.id;
+                        dotIndicator.style.left = `${randomEnemy.x + 20}px`;
+                        dotIndicator.style.top = `${randomEnemy.y - 30}px`;
+                        dotIndicator.textContent = randomEnemy.moonfireStacks;
+                        dotIndicator.style.display = 'flex';
+                        dotIndicator.style.justifyContent = 'center';
+                        dotIndicator.style.alignItems = 'center';
+                        dotIndicator.style.fontSize = '10px';
+                        elements.gameBoard.appendChild(dotIndicator);
+                        console.log('创建新DOT指示器:', dotIndicator);
+                        console.log('DOT指示器文本:', dotIndicator.textContent);
+                        console.log('敌人ID:', randomEnemy.id);
+                        
+                        setTimeout(() => {
+                            if (moonfire.parentNode) {
+                                moonfire.parentNode.removeChild(moonfire);
+                            }
+                        }, 1000);
+                    }
+                }
+                
+                // 处理所有敌人的月火DOT
+                console.log('敌人数量:', gameState.enemyCharacters.length);
+                gameState.enemyCharacters.forEach(enemy => {
+                    console.log('敌人ID:', enemy.id, '月火层数:', enemy.moonfireStacks);
+                    if (enemy.moonfireStacks > 0 && timestamp - enemy.moonfireStart > 1000) {
+                        // 每秒造成伤害
+                        const damage = Math.round(enemy.maxHealth * 0.02 * enemy.moonfireStacks);
+                        enemy.health -= damage;
+                        enemy.moonfireStart = timestamp;
+                        console.log('对敌人', enemy.id, '造成月火伤害:', damage);
+
+                        // 创建伤害效果
+                        createDamageEffect(enemy.x, enemy.y, `-${damage}`, '#9b59b6');
+
+                        // 更新DOT指示器
+                        const dotIndicator = document.querySelector(`.moonfire-dot[data-enemy-id="${enemy.id}"]`);
+                        console.log('找到DOT指示器:', !!dotIndicator);
+                        if (dotIndicator) {
+                            dotIndicator.textContent = enemy.moonfireStacks;
+                            console.log('更新DOT指示器文本为:', enemy.moonfireStacks);
+                        }
+                    }
+                });
+            }
+            
             // 生成敌人波次
             function spawnEnemyWave() {
                 if (gameState.gameOver || gameState.paused) return;
@@ -3122,7 +3993,7 @@
                     gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
                     gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
                     
-                    if (type === 'paladin') {
+                    if (type === 'paladin' || type === 'druid') {
                         gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
                     }
                     
@@ -3156,51 +4027,12 @@
                         saveGameData();
                         // 更新关卡选择界面
                         updateLevelSelector();
+                        // 检查德鲁伊解锁
+                        checkDruidUnlock();
                     }
                 }
             }
             
-            // 升级角色到6级（使用碎片）
-            function upgradeToLevel6(type) {
-                // 检查当前等级是否为5级
-                if (gameState.characterLevels[type] !== 5) {
-                    alert('该职业尚未达到5级，无法使用碎片升级！');
-                    return;
-                }
-                
-                if (gameState.fragments[type] < 5) {
-                    alert('碎片不足！');
-                    return;
-                }
-                
-                gameState.fragments[type] -= 5;
-                gameState.characterLevels[type] = 6;
-                
-                // 提升属性
-                gameState.characterStats[type].health = Math.round(gameState.characterStats[type].health * 1.2);
-                gameState.characterStats[type].damage = Math.round(gameState.characterStats[type].damage * 1.15);
-                
-                if (type === 'paladin') {
-                    gameState.characterStats[type].healPower = Math.round(gameState.characterStats[type].healPower * 1.15);
-                }
-                
-                // 更新角色等级显示
-                document.querySelectorAll(`.card[data-type="${type}"] .card-level`).forEach(el => {
-                    el.textContent = gameState.characterLevels[type];
-                });
-                
-                // 更新卡片边框
-                document.querySelectorAll(`.card[data-type="${type}"]`).forEach(card => {
-                    card.className = `card level-${gameState.characterLevels[type]}`;
-                });
-                
-                updateUI();
-                saveGameData();
-                
-                // 显示兴奋表情
-                createEmotion(210, 560, 'amazed');
-            }
-
             // 游戏主循环
             function startGameLoop() {
                 let lastTime = 0;
@@ -3254,6 +4086,9 @@
                                 // 更新技能特效
                                 updateSkillEffects(deltaTime);
                                 
+                                // 更新月火术
+                                updateMoonfire(timestamp);
+                                
                                 // 更新UI
                                 updateUI();
                                 
@@ -3298,7 +4133,7 @@
                 // 获取所有职业
                 const types = ['warrior', 'archer', 'mage', 'blade', 'paladin'];
                 // 过滤出碎片未满的职业（<5）
-                const availableTypes = types.filter(type => gameState.fragments[type] < 5);
+                const availableTypes = types.filter(type => gameState.fragments[type] < 5 && gameState.characterLevels[type] < 6);
                 
                 if (availableTypes.length === 0) {
                     return; // 所有职业碎片已满
@@ -3332,37 +4167,17 @@
                 saveGameData();
             }
             
-            // 获取角色名称
-            function getCharacterName(type) {
+            // 获取角色图标
+            function getCharacterIcon(type) {
                 switch(type) {
-                    case 'warrior': return '圣盾战士';
-                    case 'archer': return '精灵射手';
-                    case 'mage': return '奥术法师';
-                    case 'blade': return '影刃刺客';
-                    case 'paladin': return '神圣骑士';
+                    case 'warrior': return 'shield-alt';
+                    case 'archer': return 'bullseye';
+                    case 'mage': return 'hat-wizard';
+                    case 'blade': return 'user-ninja';
+                    case 'paladin': return 'hands-praying';
+                    case 'druid': return 'leaf';
+                    default: return 'user';
                 }
-            }
-
-            // 计算实际伤害（考虑抗性）
-            function calculateDamage(damage, damageType, enemyType) {
-                // 刺客的混合伤害无视所有抗性
-                if (damageType === 'mixed') {
-                    return damage;
-                }
-                
-                // 物理免疫怪：法术伤害减半
-                if (enemyType === 'physical-immune') {
-                    if (damageType === 'magic') return damage * 0.5;
-                    if (damageType === 'physical') return damage * 0.5;
-                }
-                
-                // 法术免疫怪：物理伤害减半
-                if (enemyType === 'magic-immune') {
-                    if (damageType === 'physical') return damage * 0.5;
-                    if (damageType === 'magic') return damage * 0.5;
-                }
-                
-                return damage;
             }
 
             // 更新角色
@@ -3370,7 +4185,7 @@
                 // 更新玩家角色
                 gameState.playerCharacters.forEach((character) => {
                     // 更新角色位置
-                    const charEl = document.querySelector(`.player-character[data-id="${character.id}"]`);
+                    const charEl = document.querySelector(`.player-character[data-id='${character.id}']`);
                     if (charEl) {
                         charEl.style.left = `${character.x - 25}px`;
                         charEl.style.top = `${character.y - 25}px`;
@@ -3444,7 +4259,11 @@
                     
                     // 角色技能触发
                     if (character.skillCooldown > 0 && timestamp - character.lastSkillTime > character.skillCooldown) {
-                        triggerCharacterSkill(character, timestamp);
+                        if (character.type === 'druid') {
+                            triggerDruidSkill(character, timestamp);
+                        } else {
+                            triggerCharacterSkill(character, timestamp);
+                        }
                     }
                     
                     // 寻找最近的敌人
@@ -3481,30 +4300,33 @@
                             if (timestamp - character.lastAttackTime > character.attackSpeed) {
                                 character.lastAttackTime = timestamp;
                                 
-                                // 创建抛射物或攻击特效
-                                if (character.type === 'warrior' || character.type === 'paladin') {
-                                    createAttackEffect(character.target.x, character.target.y, character.type, character.damageType);
-                                } else {
-                                    let actualDamage = character.damage;
-                                    
-                                    // 射手强力箭效果
-                                    if (character.type === 'archer' && character.nextAttackDouble) {
-                                        actualDamage *= 2;
-                                        character.nextAttackDouble = false;
+                                // 所有形态都允许普通攻击
+                                if (true) {
+                                    // 创建抛射物或攻击特效
+                                    if (character.type === 'warrior' || character.type === 'paladin') {
+                                        createAttackEffect(character.target.x, character.target.y, character.type, character.damageType);
+                                    } else {
+                                        let actualDamage = character.damage;
+                                        
+                                        // 射手强力箭效果
+                                        if (character.type === 'archer' && character.nextAttackDouble) {
+                                            actualDamage *= 2;
+                                            character.nextAttackDouble = false;
+                                        }
+                                        
+                                        if (character.target && character.target.health > 0) {
+                                            createProjectile(
+                                                character.x, 
+                                                character.y, 
+                                                character.target.x, 
+                                                character.target.y,
+                                                actualDamage,
+                                                character.type,
+                                                character.damageType,
+                                                character.nextAttackDouble
+                                            );
+                                        }
                                     }
-                                    
-                                    if (character.target && character.target.health > 0) {
-                        createProjectile(
-                            character.x, 
-                            character.y, 
-                            character.target.x, 
-                            character.target.y,
-                            actualDamage,
-                            character.type,
-                            character.damageType,
-                            character.nextAttackDouble
-                        );
-                    }
                                 }
                                 
                                 // 显示兴奋表情
@@ -3527,6 +4349,11 @@
                 
                 // 更新敌人
                 gameState.enemyCharacters.forEach((enemy, index) => {
+                    // 如果被眩晕，跳过移动和攻击
+                    if (enemy.stunnedUntil && timestamp < enemy.stunnedUntil) {
+                        return;
+                    }
+                    
                     // 寻找目标（优先玩家角色）
                     if (!enemy.target || enemy.target.health <= 0) {
                         let closestPlayer = null;
@@ -3568,7 +4395,7 @@
                                 enemy.lastAttackTime = timestamp;
                                 
                                 // 添加攻击动画
-                                const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                                const enemyEl = document.querySelector(`.enemy-character[data-id='${enemy.id}']`); 
                                 if (enemyEl) {
                                     enemyEl.classList.add('attack-animation');
                                     setTimeout(() => { const el = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`); if (el) el.classList.remove('attack-animation'); }, 300);
@@ -3668,7 +4495,7 @@
                                 // 创建伤害效果
                                 createDamageEffect(enemy.target.x, enemy.target.y, `-${damage}`, '#e74c3c');
                                 
-                                // 创建命中粒子效果
+                                // 创建命中粒子效果（根据攻击类型不同颜色）
                                 createHitParticles(enemy.target.x, enemy.target.y, 10, '#e74c3c');
                                 
                                 // 更新血条
@@ -3694,7 +4521,7 @@
                     }
                     
                     // 更新位置
-                    const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                    const enemyEl = document.querySelector(`.enemy-character[data-id='${enemy.id}']`);
                     if (enemyEl) {
                         enemyEl.style.top = `${enemy.y}px`;
                     }
@@ -3710,6 +4537,20 @@
                         // 显示失败表情
                         createEmotion(210, 560, 'defeat');
                         
+                        // 移除月火DOT指示器
+                        const dotIndicator = document.querySelector(`.moonfire-dot[data-enemy-id="${enemy.id}"]`);
+                        if (dotIndicator) {
+                            dotIndicator.remove();
+                            console.log('移除月火DOT指示器，敌人ID:', enemy.id);
+                        }
+                        
+                        // 移除月火特效
+                        const moonfireEffect = document.querySelector(`.moonfire-effect[data-enemy-id="${enemy.id}"]`);
+                        if (moonfireEffect) {
+                            moonfireEffect.remove();
+                            console.log('移除月火特效，敌人ID:', enemy.id);
+                        }
+                        
                         // 移除敌人
                         if (enemyEl) enemyEl.remove();
                         gameState.enemyCharacters.splice(index, 1);
@@ -3719,7 +4560,7 @@
                 // 清理死亡角色
                 gameState.playerCharacters = gameState.playerCharacters.filter(character => {
                     if (character.health <= 0) {
-                        const charEl = document.querySelector(`.player-character[data-id="${character.id}"]`);
+                        const charEl = document.querySelector(`.player-character[data-id='${character.id}']`);
                         if (charEl) {
                             // 显示悲伤表情
                             createEmotion(character.x, character.y, 'sad');
@@ -3728,6 +4569,13 @@
                             createDeathEffect(character.x, character.y, true);
                             charEl.remove();
                         }
+                        
+                        // 如果是德鲁伊，隐藏形态按钮
+                        if (character.type === 'druid') {
+                            elements.druidForms.style.display = 'none';
+                            gameState.druidCharacter = null;
+                        }
+                        
                         return false;
                     }
                     return true;
@@ -3735,13 +4583,28 @@
                 
                 gameState.enemyCharacters = gameState.enemyCharacters.filter(enemy => {
                     if (enemy.health <= 0) {
-                        const enemyEl = document.querySelector(`.enemy-character[data-id="${enemy.id}"]`);
+                        const enemyEl = document.querySelector(`.enemy-character[data-id='${enemy.id}']`);
                         if (enemyEl) {
                             // 显示悲伤表情
                             createEmotion(enemy.x, enemy.y, 'sad');
                             
                             // 创建死亡特效
                             createDeathEffect(enemy.x, enemy.y, false);
+                            
+                            // 移除月火DOT指示器
+                            const dotIndicator = document.querySelector(`.moonfire-dot[data-enemy-id="${enemy.id}"]`);
+                            if (dotIndicator) {
+                                dotIndicator.remove();
+                                console.log('移除月火DOT指示器，敌人ID:', enemy.id);
+                            }
+                            
+                            // 移除月火特效
+                            const moonfireEffect = document.querySelector(`.moonfire-effect[data-enemy-id="${enemy.id}"]`);
+                            if (moonfireEffect) {
+                                moonfireEffect.remove();
+                                console.log('移除月火特效，敌人ID:', enemy.id);
+                            }
+                            
                             enemyEl.remove();
                         }
                         
@@ -3842,7 +4705,7 @@
                 }
                 
                 // 刺客技能：冲刺攻击
-                if (character.type === 'blade' && character.target) {
+                if (character.type === 'blade') {
                     // 创建残影
                     for (let i = 0; i < 3; i++) {
                         setTimeout(() => {
@@ -3861,12 +4724,13 @@
                     }
                     
                     // 瞬间移动到目标附近
-                    const angle = Math.atan2(character.target.y - character.y, character.target.x - character.x);
-                    character.x = character.target.x - Math.cos(angle) * 40;
-                    character.y = character.target.y - Math.sin(angle) * 40;
-                    
-                    // 创建冲刺特效
-                    const dashEl = document.createElement('div');
+                    if (character.target) {
+                        const angle = Math.atan2(character.target.y - character.y, character.target.x - character.x);
+                        character.x = character.target.x - Math.cos(angle) * 40;
+                        character.y = character.target.y - Math.sin(angle) * 40;
+                        
+                        // 创建冲刺特效
+                        const dashEl = document.createElement('div');
                     dashEl.className = 'blade-dash';
                     dashEl.style.setProperty('--dash-width', '100px');
                     dashEl.style.left = `${character.x}px`;
@@ -3874,21 +4738,24 @@
                     dashEl.style.transform = `rotate(${angle}rad)`;
                     elements.gameBoard.appendChild(dashEl);
                     
-                    setTimeout(() => {
-                        if (dashEl.parentNode) {
-                            dashEl.parentNode.removeChild(dashEl);
-                        }
-                    }, 300);
+                        setTimeout(() => {
+                            if (dashEl.parentNode) {
+                                dashEl.parentNode.removeChild(dashEl);
+                            }
+                        }, 500);
+                    }
                     
                     // 立即进行一次1.5倍伤害的攻击
-                    const actualDamage = character.damage * 1.5;
-                    character.target.health -= actualDamage;
-                    
-                    // 创建伤害效果
-                    createDamageEffect(character.target.x, character.target.y, `-${Math.round(actualDamage)}`, '#e74c3c');
-                    
-                    // 创建命中粒子效果
-                    createHitParticles(character.target.x, character.target.y, 15, '#e74c3c');
+                    if (character.target) {
+                        const actualDamage = character.damage * 1.5;
+                        character.target.health -= actualDamage;
+                        
+                        // 创建伤害效果
+                        createDamageEffect(character.target.x, character.target.y, `-${Math.round(actualDamage)}`, '#e74c3c');
+                        
+                        // 创建命中粒子效果
+                        createHitParticles(character.target.x, character.target.y, 15, '#e74c3c');
+                    }
                     
                     // 重置攻击计时器
                     character.lastAttackTime = timestamp;
@@ -3941,6 +4808,7 @@
                 const projEl = document.createElement('div');
                 projEl.className = `projectile ${projectileClass}`;
                 projEl.style.left = `${startX - 15}px`;
+
                 projEl.style.top = `${startY - 15}px`;
                 projEl.dataset.id = projectile.id;
 
@@ -4027,6 +4895,20 @@
                                         enemy.speed = originalSpeed;
                                         enemy.slowTimer = null;
                                     }, 3000);
+                                    
+                                    // 创建减速效果
+                                    const slowEffect = document.createElement('div');
+                                    slowEffect.className = 'slow-effect';
+                                    slowEffect.textContent = '减速!';
+                                    slowEffect.style.left = `${enemy.x}px`;
+                                    slowEffect.style.top = `${enemy.y - 30}px`;
+                                    elements.gameBoard.appendChild(slowEffect);
+                                    
+                                    setTimeout(() => {
+                                        if (slowEffect.parentNode) {
+                                            slowEffect.parentNode.removeChild(slowEffect);
+                                        }
+                                    }, 1000);
                                 }
 
                                 // 法师范围伤害
@@ -4063,6 +4945,20 @@
                                                     nearbyEnemy.speed = originalSpeed;
                                                     nearbyEnemy.slowTimer = null;
                                                 }, 3000);
+                                                
+                                                // 创建减速效果
+                                                const slowEffect = document.createElement('div');
+                                                slowEffect.className = 'slow-effect';
+                                                slowEffect.textContent = '减速!';
+                                                slowEffect.style.left = `${nearbyEnemy.x}px`;
+                                                slowEffect.style.top = `${nearbyEnemy.y - 30}px`;
+                                                elements.gameBoard.appendChild(slowEffect);
+                                                
+                                                setTimeout(() => {
+                                                    if (slowEffect.parentNode) {
+                                                        slowEffect.parentNode.removeChild(slowEffect);
+                                                    }
+                                                }, 1000);
 
                                                 // 创建伤害效果
                                                 createDamageEffect(nearbyEnemy.x, nearbyEnemy.y, `-${Math.round(splashDamage)}`, '#ff0000');
@@ -4439,6 +5335,9 @@
                 gameState.paused = false;
                 gameState.killCount = 0;
                 gameState.nextWaveTimer = 0;
+                gameState.druidCharacter = null;
+                // 重置德鲁伊形态为初始形态
+                druidState.form = 'spirit';
                 // 设置无尽模式标志和胜利时间
                 gameState.endlessMode = gameState.currentLevel === 'endless';
                 gameState.victoryTime = gameState.endlessMode ? Infinity : 180; // 普通关卡胜利时间为3分钟(180秒)
@@ -4458,6 +5357,9 @@
                 elements.levelUpContainer.style.display = 'none';
                 elements.nextLevelContainer.style.display = 'none';
                 
+                // 隐藏德鲁伊形态按钮
+                elements.druidForms.style.display = 'none';
+                
                 // 恢复暂停按钮状态
                 const icon = elements.pauseButton.querySelector('i');
                 icon.className = 'fas fa-pause';
@@ -4468,18 +5370,7 @@
                 spawnEnemyWave();
             }
 
-            // 辅助函数
-            function getCharacterIcon(type) {
-                switch (type) {
-                    case 'warrior': return 'shield-alt';
-                    case 'archer': return 'bullseye';
-                    case 'mage': return 'hat-wizard';
-                    case 'blade': return 'user-ninja';
-                    case 'paladin': return 'hands-praying';
-                    default: return 'user';
-                }
-            }
-
+            // 获取敌人图标
             function getEnemyIcon(type) {
                 switch (type) {
                     case 'normal': return 'skull';
